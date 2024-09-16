@@ -4,7 +4,6 @@
   "description": "",
   "main": "src/chatTemplate.js",
   "scripts": {
-    "start": "snowpack dev",
     "server": "node src/server.js"
   },
   "keywords": [],
@@ -12,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.0",
+    "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
