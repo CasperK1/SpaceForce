@@ -10,13 +10,13 @@ class Particle {
   }
 
   draw() {
-    c.save()
-    c.globalAlpha = this.alpha
-    c.beginPath()
-    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
-    c.fillStyle = this.color
-    c.fill()
-    c.restore()
+    ctx.save()
+    ctx.globalAlpha = this.alpha
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
+    ctx.fillStyle = this.color
+    ctx.fill()
+    ctx.restore()
   }
 
   update() {
