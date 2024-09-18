@@ -23,7 +23,8 @@ io.on('connection', (socket) => {
   backEndPlayers[socket.id] = {
     x: 1000 * Math.random(),
     y: 1000 * Math.random(),
-    color: `hsl(${360 * Math.random()}, 100%, 50%)`
+    color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+    sequenceNumber: 0
   };
   io.emit('update-players', backEndPlayers); // Sends player data to frontend
 
@@ -35,7 +36,8 @@ io.on('connection', (socket) => {
   });
 
   // Player movement
-  socket.on('player-movement', (key) => {
+  socket.on('player-movement', ({key, sequenceNumber}) => {
+    backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
       case 'up':
         backEndPlayers[socket.id].y -= speed

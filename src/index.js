@@ -25,9 +25,15 @@ socket.on('update-players', (playerDataBackend) => {
         radius: 20
       })
     } else {
-      // Update player position
+      // Update player position from backend data
       frontEndPlayers[id].x = playerData.x
       frontEndPlayers[id].y = playerData.y
+      const lastBackendInputIndex = playerInputs.forEach((input) => {
+        return backEndPlayers.sequenceNumber === input.sequenceNumber
+      })
+      if (lastBackendInputIndex > -1) {
+        playerInputs.splice(0, lastBackendInputIndex + 1)
+      }
     }
   }
   // If ID does not exist in backend, remove player from frontend
@@ -57,24 +63,37 @@ const keys = {
   down: {pressed: false},
   right: {pressed: false}
 }
+
+// Sequence number for lag compensation:
+// allows the server to reconstruct order of player inputs if they arrive delayed or out of order due to network issues
+const playerInputs = []
+let sequenceNumber = 0
+
 setInterval(() => {
   if (keys.up.pressed) {
+    sequenceNumber++
+    playerInputs.push({sequenceNumber, dx: 0, dy: -speed})
     frontEndPlayers[socket.id].y -= speed
-    socket.emit('player-movement', 'up')
+    socket.emit('player-movement', {key: 'up', sequenceNumber})
   }
   if (keys.left.pressed) {
+    sequenceNumber++
+    playerInputs.push({sequenceNumber, dx: -speed, dy: 0})
     frontEndPlayers[socket.id].x -= speed
-    socket.emit('player-movement', 'left')
+    socket.emit('player-movement', {key: 'left', sequenceNumber})
   }
   if (keys.down.pressed) {
+    sequenceNumber++
+    playerInputs.push({sequenceNumber, dx: 0, dy: speed})
     frontEndPlayers[socket.id].y += speed
-    socket.emit('player-movement', 'down')
+    socket.emit('player-movement', {key: 'down', sequenceNumber})
   }
   if (keys.right.pressed) {
+    sequenceNumber++
+    playerInputs.push({sequenceNumber, dx: speed, dy: 0})
     frontEndPlayers[socket.id].x += speed
-    socket.emit('player-movement', 'right')
+    socket.emit('player-movement', {key: 'right', sequenceNumber})
   }
-
 }, 15)
 
 window.addEventListener('keydown', (e) => {
