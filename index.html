@@ -8,21 +8,24 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
-<div id="scoreDiv">
-    <span>Score: <span id="scoreEl">0</span></span>
+<div class="container">
+    <div id="scoreDiv">
+        <span>Score: <span id="scoreEl">0</span></span>
+    </div>
+    <canvas></canvas>
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
+            integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    ></script>
+    <script src="/src/lobbyChat.js"></script>
+    <script src="/src/classes/Enemy.js"></script>
+    <script src="/src/classes/Player.js"></script>
+    <script src="/src/classes/Particle.js"></script>
+    <script src="/src/classes/Projectile.js"></script>
+    <script src="src/eventListeners.js"></script>
+    <script src="src/index.js"></script>
 </div>
-<canvas></canvas>
-<script
-        src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
-        integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-></script>
-<script src="/src/classes/Enemy.js"></script>
-<script src="/src/classes/Player.js"></script>
-<script src="/src/classes/Particle.js"></script>
-<script src="/src/classes/Projectile.js"></script>
-<script src="src/eventListeners.js"></script>
-<script src="src/index.js"></script>
 </body>
 </html>

@@ -15,8 +15,9 @@ const speed = 15;
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  res.sendFile(__dirname + "index.html");
 });
+
 
 io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
