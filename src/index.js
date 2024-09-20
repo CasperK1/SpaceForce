@@ -10,6 +10,7 @@ ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
 
 const frontEndPlayers = {};
+const frontEndProjectiles = [];
 const speed = 15;
 
 socket.on("update-players", (playerDataBackend) => {
@@ -61,26 +62,6 @@ socket.on("update-players", (playerDataBackend) => {
   }
 });
 
-let animationId;
-
-function animate() {
-  animationId = requestAnimationFrame(animate);
-  ctx.fillStyle = "rgba(0,0,0,0.14)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (const id in frontEndPlayers) {
-    frontEndPlayers[id].draw();
-  }
-}
-
-animate();
-const keys = {
-  up: { pressed: false },
-  left: { pressed: false },
-  down: { pressed: false },
-  right: { pressed: false },
-};
-
 // Sequence number for lag compensation:
 // allows the server to reconstruct order of player inputs if they arrive delayed or out of order due to network issues
 const playerInputs = [];
@@ -114,45 +95,21 @@ setInterval(() => {
   }
 }, 15);
 
-window.addEventListener("keydown", (e) => {
-  if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
-  switch (e.key) {
-    case "w":
-    case "ArrowUp":
-      keys.up.pressed = true;
-      break;
-    case "a":
-    case "ArrowLeft":
-      keys.left.pressed = true;
-      break;
-    case "s":
-    case "ArrowDown":
-      keys.down.pressed = true;
-      break;
-    case "d":
-    case "ArrowRight":
-      keys.right.pressed = true;
-      break;
-  }
-});
+let animationId;
 
-window.addEventListener("keyup", (e) => {
-  switch (e.key) {
-    case "w":
-    case "ArrowUp":
-      keys.up.pressed = false;
-      break;
-    case "a":
-    case "ArrowLeft":
-      keys.left.pressed = false;
-      break;
-    case "s":
-    case "ArrowDown":
-      keys.down.pressed = false;
-      break;
-    case "d":
-    case "ArrowRight":
-      keys.right.pressed = false;
-      break;
+function animate() {
+  animationId = requestAnimationFrame(animate);
+  ctx.fillStyle = "rgba(0,0,0,0.14)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (const id in frontEndPlayers) {
+    frontEndPlayers[id].draw();
   }
-});
+
+  for (let i = frontEndProjectiles.length - 1; i >= 0; i--) {
+    const frontEndProjectile = frontEndProjectiles[i];
+    frontEndProjectile.update();
+  }
+}
+
+animate();

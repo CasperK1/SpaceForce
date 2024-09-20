@@ -10,6 +10,8 @@ const io = new Server(server, {
 });
 const port = 3000;
 const backEndPlayers = {};
+const backEndProjectiles = {};
+let projectileId = 0;
 const speed = 15;
 
 app.use(express.static(__dirname));
@@ -17,7 +19,6 @@ app.use(express.static(__dirname));
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "index.html");
 });
-
 
 io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
@@ -53,6 +54,22 @@ io.on("connection", (socket) => {
         backEndPlayers[socket.id].x += speed;
         break;
     }
+  });
+
+  socket.on("shoot", ({ x, y, angle }) => {
+    projectileId++;
+    const velocity = {
+      x: Math.cos(angle) * 5,
+      y: Math.sin(angle) * 5,
+    };
+
+    backEndProjectiles[projectileId] = {
+      x,
+      y,
+      velocity,
+      playerId: socket.id,
+      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+    };
   });
 });
 

@@ -1,29 +1,87 @@
+addEventListener("click", (e) => {
+  const playerPosition = {
+    x: frontEndPlayers[socket.id].x,
+    y: frontEndPlayers[socket.id].y,
+  };
 
-addEventListener('click', (e) => {
   const angle = Math.atan2(
-    e.clientY - canvas.height / 2,
-    e.clientX - canvas.width / 2
-  )
-  const velocity = {
-    x: Math.cos(angle) * 5,
-    y: Math.sin(angle) * 5
-  }
-  projectiles.push(
-    new Projectile(canvas.width / 2, canvas.height / 2, 5, 'white', velocity)
-  )
-})
+    e.clientY - playerPosition.y,
+    e.clientX - playerPosition.x,
+  );
 
+  socket.emit("shoot", { x: playerPosition.x, y: playerPosition.y, angle });
+  // frontEndProjectiles.push(
+  //   new Projectile({
+  //     x: playerPosition.x,
+  //     y: playerPosition.y,
+  //     radius: 5,
+  //     color: "white",
+  //     velocity,
+  //   }),
+});
 
-window.addEventListener('DOMContentLoaded', (event) => {
-  const canvas = document.querySelector('canvas');
+window.addEventListener("DOMContentLoaded", (event) => {
+  const canvas = document.querySelector("canvas");
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
 
   // Initial resize to set canvas size
   resizeCanvas();
+});
+
+// Movement ♿
+
+const keys = {
+  up: { pressed: false },
+  left: { pressed: false },
+  down: { pressed: false },
+  right: { pressed: false },
+};
+
+addEventListener("keydown", (e) => {
+  if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
+  switch (e.key) {
+    case "w":
+    case "ArrowUp":
+      keys.up.pressed = true;
+      break;
+    case "a":
+    case "ArrowLeft":
+      keys.left.pressed = true;
+      break;
+    case "s":
+    case "ArrowDown":
+      keys.down.pressed = true;
+      break;
+    case "d":
+    case "ArrowRight":
+      keys.right.pressed = true;
+      break;
+  }
+});
+
+addEventListener("keyup", (e) => {
+  switch (e.key) {
+    case "w":
+    case "ArrowUp":
+      keys.up.pressed = false;
+      break;
+    case "a":
+    case "ArrowLeft":
+      keys.left.pressed = false;
+      break;
+    case "s":
+    case "ArrowDown":
+      keys.down.pressed = false;
+      break;
+    case "d":
+    case "ArrowRight":
+      keys.right.pressed = false;
+      break;
+  }
 });
