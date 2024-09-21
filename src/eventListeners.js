@@ -10,14 +10,6 @@ addEventListener("click", (e) => {
   );
 
   socket.emit("shoot", { x: playerPosition.x, y: playerPosition.y, angle });
-  // frontEndProjectiles.push(
-  //   new Projectile({
-  //     x: playerPosition.x,
-  //     y: playerPosition.y,
-  //     radius: 5,
-  //     color: "white",
-  //     velocity,
-  //   }),
 });
 
 window.addEventListener("DOMContentLoaded", (event) => {

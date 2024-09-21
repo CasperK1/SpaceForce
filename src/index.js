@@ -1,5 +1,5 @@
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d", {antialias: true});
+const ctx = canvas.getContext("2d", { antialias: true });
 const pixelRatio = window.devicePixelRatio || 1;
 const scoreEl = document.querySelector("#scoreEl");
 const socket = io();
@@ -12,7 +12,9 @@ ctx.imageSmoothingQuality = "high";
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
 const speed = 15;
-
+socket.on("connect", () => {
+  socket.emit("init-canvas", { width: canvas.width, height: canvas.height });
+});
 socket.on("update-players", (playerDataBackend) => {
   for (const id in playerDataBackend) {
     const playerData = playerDataBackend[id];
@@ -73,8 +75,14 @@ socket.on("update-projectiles", (projectileDataBackend) => {
         velocity: projectileData.velocity,
       });
     } else {
-      frontEndProjectiles[id].x += projectileData.velocity.x;
-      frontEndProjectiles[id].y += projectileData.velocity.y;
+      frontEndProjectiles[id].x = projectileData.x;
+      frontEndProjectiles[id].y = projectileData.y;
+    }
+  }
+  // Remove projectiles that no longer exist on the server
+  for (const id in frontEndProjectiles) {
+    if (!projectileDataBackend[id]) {
+      delete frontEndProjectiles[id];
     }
   }
 });
@@ -88,27 +96,27 @@ let sequenceNumber = 0;
 setInterval(() => {
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: -speed});
+    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed });
     frontEndPlayers[socket.id].y -= speed;
-    socket.emit("player-movement", {key: "up", sequenceNumber});
+    socket.emit("player-movement", { key: "up", sequenceNumber });
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: -speed, dy: 0});
+    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 });
     frontEndPlayers[socket.id].x -= speed;
-    socket.emit("player-movement", {key: "left", sequenceNumber});
+    socket.emit("player-movement", { key: "left", sequenceNumber });
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: speed});
+    playerInputs.push({ sequenceNumber, dx: 0, dy: speed });
     frontEndPlayers[socket.id].y += speed;
-    socket.emit("player-movement", {key: "down", sequenceNumber});
+    socket.emit("player-movement", { key: "down", sequenceNumber });
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: speed, dy: 0});
+    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 });
     frontEndPlayers[socket.id].x += speed;
-    socket.emit("player-movement", {key: "right", sequenceNumber});
+    socket.emit("player-movement", { key: "right", sequenceNumber });
   }
 }, 15);
 
@@ -125,11 +133,6 @@ function animate() {
   for (const id in frontEndProjectiles) {
     frontEndProjectiles[id].draw();
   }
-
-  //for (let i = frontEndProjectiles.length - 1; i >= 0; i--) {
-  //  const frontEndProjectile = frontEndProjectiles[i];
-  //  frontEndProjectile.update();
-  // }
 }
 
 animate();

@@ -37,6 +37,11 @@ io.on("connection", (socket) => {
     io.emit("update-players", backEndPlayers); // Removes player from frontend too
   });
 
+  // Canvas size
+  socket.on("init-canvas", ({ width, height }) => {
+    backEndPlayers[socket.id].canvas = { width, height };
+  });
+
   // Player movement
   socket.on("player-movement", ({ key, sequenceNumber }) => {
     backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
@@ -56,6 +61,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Shooting
   socket.on("shoot", ({ x, y, angle }) => {
     projectileId++;
     const velocity = {
@@ -70,13 +76,38 @@ io.on("connection", (socket) => {
       playerId: socket.id,
     };
   });
+
+  // Chat
+  socket.on("chat-message", (message, userName) => {
+    io.emit("chat-message", {
+      senderId: socket.id,
+      message: message,
+      userName: userName,
+    });
+  });
 });
 
 setInterval(() => {
+  // Update projectile positions
   for (const id in backEndProjectiles) {
     backEndProjectiles[id].x += backEndProjectiles[id].velocity.x;
     backEndProjectiles[id].y += backEndProjectiles[id].velocity.y;
+
+    // Check boundaries and remove if necessary
+    const PROJECTILE_RADIUS = 5;
+    const player = backEndPlayers[backEndProjectiles[id].playerId];
+    if (
+      player &&
+      player.canvas &&
+      (backEndProjectiles[id].x - PROJECTILE_RADIUS >= player.canvas.width ||
+        backEndProjectiles[id].x + PROJECTILE_RADIUS <= 0 ||
+        backEndProjectiles[id].y - PROJECTILE_RADIUS >= player.canvas.height ||
+        backEndProjectiles[id].y + PROJECTILE_RADIUS <= 0)
+    ) {
+      delete backEndProjectiles[id];
+    }
   }
+
   io.emit("update-projectiles", backEndProjectiles);
   io.emit("update-players", backEndPlayers);
 }, 15);
