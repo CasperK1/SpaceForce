@@ -1,5 +1,5 @@
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d", { antialias: true });
+const ctx = canvas.getContext("2d", {antialias: true});
 const pixelRatio = window.devicePixelRatio || 1;
 const scoreEl = document.querySelector("#scoreEl");
 const socket = io();
@@ -10,7 +10,7 @@ ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
 
 const frontEndPlayers = {};
-const frontEndProjectiles = [];
+const frontEndProjectiles = {};
 const speed = 15;
 
 socket.on("update-players", (playerDataBackend) => {
@@ -61,6 +61,23 @@ socket.on("update-players", (playerDataBackend) => {
     }
   }
 });
+socket.on("update-projectiles", (projectileDataBackend) => {
+  for (const id in projectileDataBackend) {
+    const projectileData = projectileDataBackend[id];
+    if (!frontEndProjectiles[id]) {
+      frontEndProjectiles[id] = new Projectile({
+        x: projectileData.x,
+        y: projectileData.y,
+        radius: 5,
+        color: frontEndPlayers[projectileData.playerId]?.color,
+        velocity: projectileData.velocity,
+      });
+    } else {
+      frontEndProjectiles[id].x += projectileData.velocity.x;
+      frontEndProjectiles[id].y += projectileData.velocity.y;
+    }
+  }
+});
 
 // Sequence number for lag compensation:
 // allows the server to reconstruct order of player inputs if they arrive delayed or out of order due to network issues
@@ -71,27 +88,27 @@ let sequenceNumber = 0;
 setInterval(() => {
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed });
+    playerInputs.push({sequenceNumber, dx: 0, dy: -speed});
     frontEndPlayers[socket.id].y -= speed;
-    socket.emit("player-movement", { key: "up", sequenceNumber });
+    socket.emit("player-movement", {key: "up", sequenceNumber});
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 });
+    playerInputs.push({sequenceNumber, dx: -speed, dy: 0});
     frontEndPlayers[socket.id].x -= speed;
-    socket.emit("player-movement", { key: "left", sequenceNumber });
+    socket.emit("player-movement", {key: "left", sequenceNumber});
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: speed });
+    playerInputs.push({sequenceNumber, dx: 0, dy: speed});
     frontEndPlayers[socket.id].y += speed;
-    socket.emit("player-movement", { key: "down", sequenceNumber });
+    socket.emit("player-movement", {key: "down", sequenceNumber});
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 });
+    playerInputs.push({sequenceNumber, dx: speed, dy: 0});
     frontEndPlayers[socket.id].x += speed;
-    socket.emit("player-movement", { key: "right", sequenceNumber });
+    socket.emit("player-movement", {key: "right", sequenceNumber});
   }
 }, 15);
 
@@ -99,17 +116,20 @@ let animationId;
 
 function animate() {
   animationId = requestAnimationFrame(animate);
-  ctx.fillStyle = "rgba(0,0,0,0.14)";
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (const id in frontEndPlayers) {
     frontEndPlayers[id].draw();
   }
-
-  for (let i = frontEndProjectiles.length - 1; i >= 0; i--) {
-    const frontEndProjectile = frontEndProjectiles[i];
-    frontEndProjectile.update();
+  for (const id in frontEndProjectiles) {
+    frontEndProjectiles[id].draw();
   }
+
+  //for (let i = frontEndProjectiles.length - 1; i >= 0; i--) {
+  //  const frontEndProjectile = frontEndProjectiles[i];
+  //  frontEndProjectile.update();
+  // }
 }
 
 animate();

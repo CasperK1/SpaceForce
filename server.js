@@ -68,12 +68,16 @@ io.on("connection", (socket) => {
       y,
       velocity,
       playerId: socket.id,
-      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
     };
   });
 });
 
 setInterval(() => {
+  for (const id in backEndProjectiles) {
+    backEndProjectiles[id].x += backEndProjectiles[id].velocity.x;
+    backEndProjectiles[id].y += backEndProjectiles[id].velocity.y;
+  }
+  io.emit("update-projectiles", backEndProjectiles);
   io.emit("update-players", backEndPlayers);
 }, 15);
 server.listen(port, () => {
