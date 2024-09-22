@@ -1,7 +1,6 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d", { antialias: true });
 const pixelRatio = window.devicePixelRatio || 1;
-const scoreEl = document.querySelector("#scoreEl");
 const socket = io();
 
 canvas.width = window.innerWidth * pixelRatio;
@@ -27,6 +26,8 @@ socket.on("update-players", (playerDataBackend) => {
         y: playerData.y,
         radius: 20,
       });
+      document.querySelector("#score-list").innerHTML +=
+        `<div data-id="${id}">${id}: ${frontEndPlayers[id].score}</div>`;
     } else {
       if (id === socket.id) {
         // Update player position from backend data
@@ -59,6 +60,8 @@ socket.on("update-players", (playerDataBackend) => {
   // If ID does not exist in backend, remove player from frontend
   for (const id in frontEndPlayers) {
     if (!playerDataBackend[id]) {
+      const divDel = document.querySelector(`div[data-id="${id}"]`);
+      divDel.remove();
       delete frontEndPlayers[id];
     }
   }

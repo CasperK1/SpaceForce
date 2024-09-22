@@ -8,6 +8,23 @@ body, html {
     color: #e0e0e0;
 }
 
+#leaderboard-title {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+#score-div {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px;
+    background-color: rgba(26, 26, 46, 0.48);
+    margin-bottom: 20px;
+}
+
+#score-list {
+}
+
 .chat-container {
     display: flex;
     flex-direction: column;

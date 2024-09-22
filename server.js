@@ -38,8 +38,10 @@ io.on("connection", (socket) => {
   });
 
   // Canvas size
-  socket.on("init-canvas", ({ width, height }) => {
+  socket.on("init-canvas", ({ width, height, pixelRatio }) => {
     backEndPlayers[socket.id].canvas = { width, height };
+
+    backEndPlayers[socket.id].radius = 10;
   });
 
   // Player movement
@@ -105,6 +107,28 @@ setInterval(() => {
         backEndProjectiles[id].y + PROJECTILE_RADIUS <= 0)
     ) {
       delete backEndProjectiles[id];
+      continue;
+    }
+    for (const playerId in backEndPlayers) {
+      const backEndPlayer = backEndPlayers[playerId];
+
+      const DISTANCE = Math.hypot(
+        backEndProjectiles[id].x - backEndPlayer.x,
+        backEndProjectiles[id].y - backEndPlayer.y,
+      );
+
+      // collision detection
+      if (
+        DISTANCE < PROJECTILE_RADIUS + backEndPlayer.radius &&
+        backEndProjectiles[id].playerId !== playerId
+      ) {
+        if (backEndPlayers[backEndProjectiles[id].playerId])
+          backEndPlayers[backEndProjectiles[id].playerId].score++;
+
+        delete backEndProjectiles[id];
+        delete backEndPlayers[playerId];
+        break;
+      }
     }
   }
 

@@ -70,9 +70,8 @@ function addMessage(sender, text, userName) {
 }
 
 function formattedTimeStamp() {
-  const hours = new Date().getHours();
-  const minutes = new Date().getMinutes();
-  return `${hours}:${minutes}`;
+  const date = new Date();
+  return date.toLocaleTimeString("en-US", { hour12: false });
 }
 
 joinButton.addEventListener("click", (e) => {
