@@ -7,6 +7,35 @@ body, html {
     background-color: #1a1a2e;
     color: #e0e0e0;
 }
+.username-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#usernameInput {
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    background: #475569;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+#name-input-button {
+    padding: 8px 20px;
+    border-radius: 100px;
+    border: none;
+    background-image: linear-gradient(to right, rgb(6, 182, 212), rgb(59, 130, 246));
+    color: white;
+    cursor: pointer;
+}
 
 #leaderboard-title {
     font-size: 1.2em;

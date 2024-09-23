@@ -1,17 +1,3 @@
-addEventListener("click", (e) => {
-  const playerPosition = {
-    x: frontEndPlayers[socket.id].x,
-    y: frontEndPlayers[socket.id].y,
-  };
-
-  const angle = Math.atan2(
-    e.clientY - playerPosition.y,
-    e.clientX - playerPosition.x,
-  );
-
-  socket.emit("shoot", { x: playerPosition.x, y: playerPosition.y, angle });
-});
-
 window.addEventListener("DOMContentLoaded", (event) => {
   const canvas = document.querySelector("canvas");
 
@@ -24,15 +10,42 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
   // Initial resize to set canvas size
   resizeCanvas();
+
+  // Username input and game initialization
+  const usernameInput = document.querySelector("#usernameInput");
+  const button = document.querySelector("#name-input-button");
+
+  button.addEventListener("click", (e) => {
+    const username = usernameInput.value;
+    if (!username) return;
+    socket.emit("init-game", {userName: username, width: canvas.width, height: canvas.height});
+    usernameInput.value = "";
+    document.querySelector(".username-container").style.display = "none";
+  });
+});
+
+// Shooting 🔫
+addEventListener("click", (e) => {
+  const playerPosition = {
+    x: frontEndPlayers[socket.id].x,
+    y: frontEndPlayers[socket.id].y,
+  };
+
+  const angle = Math.atan2(
+    e.clientY - playerPosition.y,
+    e.clientX - playerPosition.x,
+  );
+
+  socket.emit("shoot", {x: playerPosition.x, y: playerPosition.y, angle});
 });
 
 // Movement ♿
 
 const keys = {
-  up: { pressed: false },
-  left: { pressed: false },
-  down: { pressed: false },
-  right: { pressed: false },
+  up: {pressed: false},
+  left: {pressed: false},
+  down: {pressed: false},
+  right: {pressed: false},
 };
 
 addEventListener("keydown", (e) => {
@@ -77,3 +90,5 @@ addEventListener("keyup", (e) => {
       break;
   }
 });
+
+

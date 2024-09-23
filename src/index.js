@@ -1,5 +1,5 @@
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d", { antialias: true });
+const ctx = canvas.getContext("2d", {antialias: true});
 const pixelRatio = window.devicePixelRatio || 1;
 const socket = io();
 
@@ -11,12 +11,13 @@ ctx.imageSmoothingQuality = "high";
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
 const speed = 15;
-socket.on("connect", () => {
-  socket.emit("init-canvas", { width: canvas.width, height: canvas.height });
-});
+const leaderBoard = document.querySelector("#score-list");
+
+
 socket.on("update-players", (playerDataBackend) => {
   for (const id in playerDataBackend) {
     const playerData = playerDataBackend[id];
+    const scoreElement = document.querySelector(`div[data-id="${id}"]`);
 
     // If player does not exist frontend, create a new player
     if (!frontEndPlayers[id]) {
@@ -26,9 +27,15 @@ socket.on("update-players", (playerDataBackend) => {
         y: playerData.y,
         radius: 20,
       });
-      document.querySelector("#score-list").innerHTML +=
-        `<div data-id="${id}">${id}: ${frontEndPlayers[id].score}</div>`;
+
+      // Add new player to the leaderboard
+      leaderBoard.innerHTML +=
+        `<div data-id="${id}" data-score="${playerData.score}">${playerData.userName}: ${playerData.score}</div>`;
     } else {
+      // Update leaderboard
+      scoreElement.innerHTML = `${playerData.userName}: ${playerData.score}`;
+      scoreElement.setAttribute("data-score", playerData.score);
+
       if (id === socket.id) {
         // Update player position from backend data
         frontEndPlayers[id].x = playerData.x;
@@ -38,6 +45,7 @@ socket.on("update-players", (playerDataBackend) => {
           return playerData.sequenceNumber === input.sequenceNumber;
         });
 
+        // Lag compensation with gsap. If player inputs are delayed, interpolate player position
         if (lastBackendInputIndex > -1) {
           playerInputs.splice(0, lastBackendInputIndex + 1);
         }
@@ -57,15 +65,30 @@ socket.on("update-players", (playerDataBackend) => {
       }
     }
   }
+
   // If ID does not exist in backend, remove player from frontend
   for (const id in frontEndPlayers) {
     if (!playerDataBackend[id]) {
       const divDel = document.querySelector(`div[data-id="${id}"]`);
+
       divDel.remove();
       delete frontEndPlayers[id];
     }
   }
+
+  // Sort the leaderboard
+  const scoreElements = Array.from(leaderBoard.children);
+  scoreElements.sort((a, b) => {
+    const scoreA = parseInt(a.getAttribute("data-score"));
+    const scoreB = parseInt(b.getAttribute("data-score"));
+    return scoreB - scoreA; // Sort in descending order
+  });
+
+  // Clear the leaderboard and append sorted elements
+  leaderBoard.innerHTML = "";
+  scoreElements.forEach(element => leaderBoard.appendChild(element));
 });
+
 socket.on("update-projectiles", (projectileDataBackend) => {
   for (const id in projectileDataBackend) {
     const projectileData = projectileDataBackend[id];
@@ -82,6 +105,7 @@ socket.on("update-projectiles", (projectileDataBackend) => {
       frontEndProjectiles[id].y = projectileData.y;
     }
   }
+
   // Remove projectiles that no longer exist on the server
   for (const id in frontEndProjectiles) {
     if (!projectileDataBackend[id]) {
@@ -99,27 +123,27 @@ let sequenceNumber = 0;
 setInterval(() => {
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed });
+    playerInputs.push({sequenceNumber, dx: 0, dy: -speed});
     frontEndPlayers[socket.id].y -= speed;
-    socket.emit("player-movement", { key: "up", sequenceNumber });
+    socket.emit("player-movement", {key: "up", sequenceNumber});
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 });
+    playerInputs.push({sequenceNumber, dx: -speed, dy: 0});
     frontEndPlayers[socket.id].x -= speed;
-    socket.emit("player-movement", { key: "left", sequenceNumber });
+    socket.emit("player-movement", {key: "left", sequenceNumber});
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: speed });
+    playerInputs.push({sequenceNumber, dx: 0, dy: speed});
     frontEndPlayers[socket.id].y += speed;
-    socket.emit("player-movement", { key: "down", sequenceNumber });
+    socket.emit("player-movement", {key: "down", sequenceNumber});
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 });
+    playerInputs.push({sequenceNumber, dx: speed, dy: 0});
     frontEndPlayers[socket.id].x += speed;
-    socket.emit("player-movement", { key: "right", sequenceNumber });
+    socket.emit("player-movement", {key: "right", sequenceNumber});
   }
 }, 15);
 

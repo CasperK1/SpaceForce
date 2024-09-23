@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const {Server} = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,13 +22,25 @@ app.get("/", (req, res) => {
 
 io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
-  backEndPlayers[socket.id] = {
-    x: 1000 * Math.random(),
-    y: 1000 * Math.random(),
-    color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-    sequenceNumber: 0,
-  };
+
   io.emit("update-players", backEndPlayers); // Sends player data to frontend
+
+  // Game initialization
+  socket.on("init-game", ({width, height, userName}) => {
+    backEndPlayers[socket.id] = {
+      x: 1000 * Math.random(),
+      y: 1000 * Math.random(),
+      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+      sequenceNumber: 0,
+      score: 0,
+      userName
+    };
+    backEndPlayers[socket.id].canvas = {width, height};
+    backEndPlayers[socket.id].radius = 10;
+
+    console.log(`Username entered: ${userName}`);
+    backEndPlayers[socket.id].userName = userName;
+  });
 
   // Disconnect
   socket.on("disconnect", () => {
@@ -37,15 +49,8 @@ io.on("connection", (socket) => {
     io.emit("update-players", backEndPlayers); // Removes player from frontend too
   });
 
-  // Canvas size
-  socket.on("init-canvas", ({ width, height, pixelRatio }) => {
-    backEndPlayers[socket.id].canvas = { width, height };
-
-    backEndPlayers[socket.id].radius = 10;
-  });
-
   // Player movement
-  socket.on("player-movement", ({ key, sequenceNumber }) => {
+  socket.on("player-movement", ({key, sequenceNumber}) => {
     backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
       case "up":
@@ -64,7 +69,7 @@ io.on("connection", (socket) => {
   });
 
   // Shooting
-  socket.on("shoot", ({ x, y, angle }) => {
+  socket.on("shoot", ({x, y, angle}) => {
     projectileId++;
     const velocity = {
       x: Math.cos(angle) * 5,
@@ -122,9 +127,7 @@ setInterval(() => {
         DISTANCE < PROJECTILE_RADIUS + backEndPlayer.radius &&
         backEndProjectiles[id].playerId !== playerId
       ) {
-        if (backEndPlayers[backEndProjectiles[id].playerId])
-          backEndPlayers[backEndProjectiles[id].playerId].score++;
-
+        backEndPlayers[backEndProjectiles[id].playerId].score++;
         delete backEndProjectiles[id];
         delete backEndPlayers[playerId];
         break;
