@@ -14,10 +14,11 @@ const backEndProjectiles = {};
 let projectileId = 0;
 const speed = 15;
 
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/src'));
 
+// Serve index.html when user visits root
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "index.html");
+  res.sendFile(__dirname + '/src/index.html');
 });
 
 io.on("connection", (socket) => {
