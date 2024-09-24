@@ -8,8 +8,7 @@ const io = new Server(server, {
   pingInterval: 3000,
   pingTimeout: 5000,
 });
-const port = 3000;
-const backEndPlayers = {};
+const port = process.env.PORT || 3000;const backEndPlayers = {};
 const backEndProjectiles = {};
 let projectileId = 0;
 const speed = 15;
