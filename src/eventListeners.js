@@ -1,15 +1,4 @@
 window.addEventListener("DOMContentLoaded", (event) => {
-  const canvas = document.querySelector("canvas");
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  window.addEventListener("resize", resizeCanvas);
-
-  // Initial resize to set canvas size
-  resizeCanvas();
 
   // Username input and game initialization
   const usernameInput = document.querySelector("#usernameInput");
@@ -26,17 +15,21 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
 // Shooting 🔫
 addEventListener("click", (e) => {
+  if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
+  const canvas = document.querySelector("canvas");
+  const {x, y} = canvas.getBoundingClientRect();
   const playerPosition = {
     x: frontEndPlayers[socket.id].x,
     y: frontEndPlayers[socket.id].y,
   };
 
   const angle = Math.atan2(
-    e.clientY - playerPosition.y,
-    e.clientX - playerPosition.x,
+    (e.clientY - y) - playerPosition.y,
+    (e.clientX - x)- playerPosition.x,
   );
 
   socket.emit("shoot", {x: playerPosition.x, y: playerPosition.y, angle});
+
 });
 
 // Movement ♿

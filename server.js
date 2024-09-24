@@ -8,7 +8,8 @@ const io = new Server(server, {
   pingInterval: 3000,
   pingTimeout: 5000,
 });
-const port = process.env.PORT || 3000;const backEndPlayers = {};
+const port = process.env.PORT || 3000;
+const backEndPlayers = {};
 const backEndProjectiles = {};
 let projectileId = 0;
 const speed = 15;
@@ -23,12 +24,10 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
 
-  io.emit("update-players", backEndPlayers); // Sends player data to frontend
-
   // Game initialization
   socket.on("init-game", ({width, height, userName}) => {
     backEndPlayers[socket.id] = {
-      x: 1000 * Math.random(),
+      x: 1700 * Math.random(),
       y: 1000 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNumber: 0,
@@ -37,9 +36,9 @@ io.on("connection", (socket) => {
     };
     backEndPlayers[socket.id].canvas = {width, height};
     backEndPlayers[socket.id].radius = 10;
-
-    console.log(`Username entered: ${userName}`);
     backEndPlayers[socket.id].userName = userName;
+    io.emit("bot-message", {message: `${backEndPlayers[socket.id].userName} joined!`});
+
   });
 
   // Disconnect
@@ -51,6 +50,7 @@ io.on("connection", (socket) => {
 
   // Player movement
   socket.on("player-movement", ({key, sequenceNumber}) => {
+    const backendPlayer = backEndPlayers[socket.id];
     backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
       case "up":
@@ -66,6 +66,27 @@ io.on("connection", (socket) => {
         backEndPlayers[socket.id].x += speed;
         break;
     }
+const playerSides = {
+  left: backendPlayer.x - backendPlayer.radius ,
+  right: backendPlayer.x + backendPlayer.radius,
+  top: backendPlayer.y - backendPlayer.radius,
+  bottom: backendPlayer.y + backendPlayer.radius,
+};
+
+// Boundary check
+if (playerSides.left < 0) {
+  backEndPlayers[socket.id].x = backendPlayer.radius + 10;
+}
+if (playerSides.right > backendPlayer.canvas.width) {
+  backEndPlayers[socket.id].x = backendPlayer.canvas.width - backendPlayer.radius - 10;
+}
+if (playerSides.top < 0) {
+  backEndPlayers[socket.id].y = backendPlayer.radius + 10;
+}
+if (playerSides.bottom > backendPlayer.canvas.height) {
+  backEndPlayers[socket.id].y = backendPlayer.canvas.height - backendPlayer.radius - 10;
+}
+
   });
 
   // Shooting
@@ -85,11 +106,21 @@ io.on("connection", (socket) => {
   });
 
   // Chat
-  socket.on("chat-message", (message, userName) => {
+  socket.on("chat-message", (message) => {
+    if (!backEndPlayers[socket.id] || !backEndPlayers[socket.id].userName) {
+      console.log("no user name");
+      return;
+    }
     io.emit("chat-message", {
       senderId: socket.id,
       message: message,
-      userName: userName,
+      userName: backEndPlayers[socket.id].userName,
+    });
+  });
+  socket.on("bot-message", (message) => {
+    console.log(message);
+    io.emit("bot-message", {
+      message: message,
     });
   });
 });

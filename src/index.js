@@ -1,10 +1,9 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d", {antialias: true});
-const pixelRatio = window.devicePixelRatio || 1;
 const socket = io();
 
-canvas.width = window.innerWidth * pixelRatio;
-canvas.height = window.innerHeight * pixelRatio;
+canvas.width = 1700
+canvas.height = 1000
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
 
@@ -22,15 +21,17 @@ socket.on("update-players", (playerDataBackend) => {
     // If player does not exist frontend, create a new player
     if (!frontEndPlayers[id]) {
       frontEndPlayers[id] = new Player({
+        userName: playerData.userName,
         color: playerData.color,
         x: playerData.x,
         y: playerData.y,
         radius: 20,
       });
-
       // Add new player to the leaderboard
       leaderBoard.innerHTML +=
         `<div data-id="${id}" data-score="${playerData.score}">${playerData.userName}: ${playerData.score}</div>`;
+      chatInputArea.style.display = "Flex"; // Chat input to visible
+
     } else {
       // Update leaderboard
       scoreElement.innerHTML = `${playerData.userName}: ${playerData.score}`;
@@ -151,8 +152,8 @@ let animationId;
 
 function animate() {
   animationId = requestAnimationFrame(animate);
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const id in frontEndPlayers) {
     frontEndPlayers[id].draw();

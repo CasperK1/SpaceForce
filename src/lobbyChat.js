@@ -15,22 +15,6 @@ welcomeMessage.className = "message bot-message";
 welcomeMessage.textContent = "Lobby chat";
 chatMessages.appendChild(welcomeMessage);
 
-// Create join input area
-const joinArea = document.createElement("div");
-joinArea.className = "join-input";
-chatContainer.appendChild(joinArea);
-
-const joinInput = document.createElement("input");
-joinInput.id = "join-input";
-joinInput.type = "text";
-joinInput.placeholder = "Enter your name";
-joinArea.appendChild(joinInput);
-
-const joinButton = document.createElement("button");
-joinButton.id = "join-button";
-joinButton.textContent = "Join";
-joinArea.appendChild(joinButton);
-
 // Create chat input area
 const chatInputArea = document.createElement("div");
 chatInputArea.className = "chat-input";
@@ -49,40 +33,53 @@ chatInputArea.appendChild(sendButton);
 
 const container = document.querySelector(".container");
 container.appendChild(chatContainer);
-let userName = "";
 
 function addMessage(sender, text, userName) {
-  const messageElement = document.createElement("div");
-  messageElement.classList.add("message", sender + "-message");
+  if (userName) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", sender + "-message");
 
-  const timestamp = document.createElement("span");
-  timestamp.className = "timestamp";
-  timestamp.textContent = formattedTimeStamp();
-  messageElement.appendChild(timestamp);
+    const timestamp = document.createElement("span");
+    timestamp.className = "timestamp";
+    timestamp.textContent = formattedTimeStamp();
+    messageElement.appendChild(timestamp);
 
-  const textElement = document.createElement("span");
-  textElement.className = "message-text";
-  textElement.textContent = userName + ": " + text;
-  messageElement.appendChild(textElement);
+    const textElement = document.createElement("span");
+    textElement.className = "message-text";
+    textElement.textContent = userName + ": " + text;
+    messageElement.appendChild(textElement);
 
-  chatMessages.appendChild(messageElement);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+}
+
+function botMessage(message) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", "bot-message");
+
+    const timestamp = document.createElement("span");
+    timestamp.className = "timestamp";
+    timestamp.textContent = formattedTimeStamp();
+    messageElement.appendChild(timestamp);
+
+    const textElement = document.createElement("span");
+    textElement.className = "message-text";
+    textElement.textContent = message;
+    messageElement.appendChild(textElement);
+
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function formattedTimeStamp() {
   const date = new Date();
-  return date.toLocaleTimeString("en-US", { hour12: false });
+  return date.toLocaleTimeString("en-US", {hour12: false});
 }
 
-joinButton.addEventListener("click", (e) => {
-  userName = joinInput.value;
-  joinInput.value = "";
-  joinArea.style.display = "none";
-  chatInputArea.style.display = "flex";
-});
 
 function sendMessageBackend() {
-  socket.emit("chat-message", messageInput.value, userName);
+  socket.emit("chat-message", messageInput.value);
   messageInput.value = "";
 }
 
@@ -91,16 +88,22 @@ sendButton.addEventListener("click", () => {
 });
 
 messageInput.addEventListener("keypress", function (e) {
+  if (!messageInput.value) return;
+
   if (e.key === "Enter") {
     sendMessageBackend();
   }
 });
-socket.on("chat-message", ({ senderId, message, userName }) => {
+socket.on("chat-message", ({senderId, message, userName}) => {
   if (senderId === socket.id) {
     addMessage("user", message, userName);
   } else {
     addMessage("other", message, userName);
   }
 });
-// Initially hide the chat input area
+
+socket.on("bot-message", ({message}) => {
+    botMessage(message);
+});
+
 chatInputArea.style.display = "none";
