@@ -16,7 +16,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
 // Shooting 🔫
 addEventListener("click", (e) => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
-  const canvas = document.querySelector("canvas");
   const {x, y} = canvas.getBoundingClientRect();
   const playerPosition = {
     x: frontEndPlayers[socket.id].x,
@@ -25,12 +24,22 @@ addEventListener("click", (e) => {
 
   const angle = Math.atan2(
     (e.clientY - y) - playerPosition.y,
-    (e.clientX - x)- playerPosition.x,
+    (e.clientX - x) - playerPosition.x,
   );
 
   socket.emit("shoot", {x: playerPosition.x, y: playerPosition.y, angle});
 
 });
+
+addEventListener("mousemove", (e) => {
+  const {x, y} = canvas.getBoundingClientRect();
+
+  let mouseX = e.clientX - x
+  let mouseY = e.clientY - y
+  weapon.updateAngle(mouseX, mouseY)
+
+});
+
 
 // Movement ♿
 

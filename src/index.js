@@ -11,7 +11,7 @@ const frontEndPlayers = {};
 const frontEndProjectiles = {};
 const speed = 15;
 const leaderBoard = document.querySelector("#score-list");
-
+const weapon = new Weapon(canvas.width / 2, canvas.height / 2);
 
 socket.on("update-players", (playerDataBackend) => {
   for (const id in playerDataBackend) {
@@ -152,7 +152,6 @@ let animationId;
 
 function animate() {
   animationId = requestAnimationFrame(animate);
-  //ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const id in frontEndPlayers) {
@@ -160,6 +159,9 @@ function animate() {
   }
   for (const id in frontEndProjectiles) {
     frontEndProjectiles[id].draw();
+  }
+  if (frontEndPlayers[socket.id]) {
+    weapon.update(frontEndPlayers[socket.id].x, frontEndPlayers[socket.id].y);
   }
 }
 
