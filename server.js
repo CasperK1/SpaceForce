@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-const {Server} = require("socket.io");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -12,33 +12,36 @@ const port = process.env.PORT || 3000;
 const backEndPlayers = {};
 const backEndProjectiles = {};
 let projectileId = 0;
-const speed = 15;
+const speed = 10;
 
-app.use(express.static(__dirname + '/src'));
+app.use(express.static(__dirname + "/src"));
 
 // Serve index.html when user visits root
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + '/src/index.html');
+  res.sendFile(__dirname + "/src/index.html");
 });
 
 io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
 
   // Game initialization
-  socket.on("init-game", ({width, height, userName}) => {
+  socket.on("init-game", ({ width, height, userName }) => {
     backEndPlayers[socket.id] = {
       x: 1700 * Math.random(),
       y: 1000 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNumber: 0,
       score: 0,
-      userName
+      userName,
+      weapon: { x: 0, y: 0, angle: 0 },
     };
-    backEndPlayers[socket.id].canvas = {width, height};
+    backEndPlayers[socket.id].canvas = { width, height };
     backEndPlayers[socket.id].radius = 10;
     backEndPlayers[socket.id].userName = userName;
-    io.emit("bot-message", {message: `${backEndPlayers[socket.id].userName} joined!`});
 
+    io.emit("bot-message", {
+      message: `${backEndPlayers[socket.id].userName} joined!`,
+    });
   });
 
   // Disconnect
@@ -49,7 +52,8 @@ io.on("connection", (socket) => {
   });
 
   // Player movement
-  socket.on("player-movement", ({key, sequenceNumber}) => {
+  socket.on("player-movement", ({ key, sequenceNumber }) => {
+    if (!backEndPlayers[socket.id]) return; // error handling if player does not exist
     const backendPlayer = backEndPlayers[socket.id];
     backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
@@ -66,31 +70,38 @@ io.on("connection", (socket) => {
         backEndPlayers[socket.id].x += speed;
         break;
     }
-const playerSides = {
-  left: backendPlayer.x - backendPlayer.radius ,
-  right: backendPlayer.x + backendPlayer.radius,
-  top: backendPlayer.y - backendPlayer.radius,
-  bottom: backendPlayer.y + backendPlayer.radius,
-};
+    const playerSides = {
+      left: backendPlayer.x - backendPlayer.radius,
+      right: backendPlayer.x + backendPlayer.radius,
+      top: backendPlayer.y - backendPlayer.radius,
+      bottom: backendPlayer.y + backendPlayer.radius,
+    };
 
-// Boundary check
-if (playerSides.left < 0) {
-  backEndPlayers[socket.id].x = backendPlayer.radius + 10;
-}
-if (playerSides.right > backendPlayer.canvas.width) {
-  backEndPlayers[socket.id].x = backendPlayer.canvas.width - backendPlayer.radius - 10;
-}
-if (playerSides.top < 0) {
-  backEndPlayers[socket.id].y = backendPlayer.radius + 10;
-}
-if (playerSides.bottom > backendPlayer.canvas.height) {
-  backEndPlayers[socket.id].y = backendPlayer.canvas.height - backendPlayer.radius - 10;
-}
+    // Boundary check
+    if (playerSides.left < 0) {
+      backEndPlayers[socket.id].x = backendPlayer.radius + 10;
+    }
+    if (playerSides.right > backendPlayer.canvas.width) {
+      backEndPlayers[socket.id].x =
+        backendPlayer.canvas.width - backendPlayer.radius - 10;
+    }
+    if (playerSides.top < 0) {
+      backEndPlayers[socket.id].y = backendPlayer.radius + 10;
+    }
+    if (playerSides.bottom > backendPlayer.canvas.height) {
+      backEndPlayers[socket.id].y =
+        backendPlayer.canvas.height - backendPlayer.radius - 10;
+    }
+  });
 
+  // Weapon movement
+  socket.on("weapon-movement", ({ angle }) => {
+    if (!backEndPlayers[socket.id]) return; // error handling if player does not exist
+    backEndPlayers[socket.id].weapon = { angle };
   });
 
   // Shooting
-  socket.on("shoot", ({x, y, angle}) => {
+  socket.on("shoot", ({ x, y, angle }) => {
     projectileId++;
     const velocity = {
       x: Math.cos(angle) * 5,

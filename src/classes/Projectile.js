@@ -1,12 +1,12 @@
 class Projectile {
-  constructor({ x, y, radius, color = 'white', velocity }) {
+  constructor({ x, y, radius, color = "white", velocity }) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
     this.velocity = velocity;
-    this.trail = [];  // Store previous positions for trail effect
-    this.maxTrailLength = 18;  // Limit the length of the trail
+    this.trail = []; // Store previous positions for trail effect
+    this.maxTrailLength = 18; // Limit the length of the trail
   }
 
   draw() {
@@ -24,7 +24,7 @@ class Projectile {
     // Draw the current projectile
     ctx.save();
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 40;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
     ctx.fillStyle = this.color;
@@ -34,7 +34,7 @@ class Projectile {
     // Update the trail with the current position
     this.trail.push({ x: this.x, y: this.y });
     if (this.trail.length > this.maxTrailLength) {
-      this.trail.shift();  // Remove the oldest position to maintain trail length
+      this.trail.shift(); // Remove the oldest position to maintain trail length
     }
   }
 }

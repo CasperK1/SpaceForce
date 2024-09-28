@@ -1,5 +1,4 @@
 window.addEventListener("DOMContentLoaded", (event) => {
-
   // Username input and game initialization
   const usernameInput = document.querySelector("#usernameInput");
   const button = document.querySelector("#name-input-button");
@@ -7,7 +6,11 @@ window.addEventListener("DOMContentLoaded", (event) => {
   button.addEventListener("click", (e) => {
     const username = usernameInput.value;
     if (!username) return;
-    socket.emit("init-game", {userName: username, width: canvas.width, height: canvas.height});
+    socket.emit("init-game", {
+      userName: username,
+      width: canvas.width,
+      height: canvas.height,
+    });
     usernameInput.value = "";
     document.querySelector(".username-container").style.display = "none";
   });
@@ -15,39 +18,47 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
 // Shooting 🔫
 addEventListener("click", (e) => {
-  if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
-  const {x, y} = canvas.getBoundingClientRect();
-  const playerPosition = {
-    x: frontEndPlayers[socket.id].x,
-    y: frontEndPlayers[socket.id].y,
-  };
+  if (!frontEndPlayers[socket.id]) return;
+  const { x, y } = canvas.getBoundingClientRect();
+  const weapon = frontEndPlayers[socket.id].weapon;
+
+  // Calculate the position of the weapon's tip
+  const weaponTipX = weapon.x + Math.cos(weapon.angle) * weapon.width;
+  const weaponTipY =
+    weapon.y + weapon.rotationPointY + Math.sin(weapon.angle) * weapon.width;
 
   const angle = Math.atan2(
-    (e.clientY - y) - playerPosition.y,
-    (e.clientX - x) - playerPosition.x,
+    e.clientY - y - weaponTipY,
+    e.clientX - x - weaponTipX,
   );
 
-  socket.emit("shoot", {x: playerPosition.x, y: playerPosition.y, angle});
-
+  socket.emit("shoot", { x: weaponTipX, y: weaponTipY, angle });
 });
 
+// Weapon movement
 addEventListener("mousemove", (e) => {
-  const {x, y} = canvas.getBoundingClientRect();
+  if (!frontEndPlayers[socket.id]) return;
 
-  let mouseX = e.clientX - x
-  let mouseY = e.clientY - y
-  weapon.updateAngle(mouseX, mouseY)
+  const { left, top } = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - left;
+  const mouseY = e.clientY - top;
 
+  // Update the weapon angle for the local player
+  frontEndPlayers[socket.id].weapon.updateAngle(mouseX, mouseY);
+
+  // Send the updated angle to the server
+  socket.emit("weapon-movement", {
+    angle: frontEndPlayers[socket.id].weapon.angle,
+  });
 });
-
 
 // Movement ♿
 
 const keys = {
-  up: {pressed: false},
-  left: {pressed: false},
-  down: {pressed: false},
-  right: {pressed: false},
+  up: { pressed: false },
+  left: { pressed: false },
+  down: { pressed: false },
+  right: { pressed: false },
 };
 
 addEventListener("keydown", (e) => {
@@ -92,5 +103,3 @@ addEventListener("keyup", (e) => {
       break;
   }
 });
-
-

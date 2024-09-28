@@ -1,17 +1,16 @@
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d", {antialias: true});
+const ctx = canvas.getContext("2d", { antialias: true });
 const socket = io();
 
-canvas.width = 1700
-canvas.height = 1000
+canvas.width = 1700;
+canvas.height = 1000;
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
 
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
-const speed = 15;
+const speed = 10;
 const leaderBoard = document.querySelector("#score-list");
-const weapon = new Weapon(canvas.width / 2, canvas.height / 2);
 
 socket.on("update-players", (playerDataBackend) => {
   for (const id in playerDataBackend) {
@@ -28,10 +27,8 @@ socket.on("update-players", (playerDataBackend) => {
         radius: 20,
       });
       // Add new player to the leaderboard
-      leaderBoard.innerHTML +=
-        `<div data-id="${id}" data-score="${playerData.score}">${playerData.userName}: ${playerData.score}</div>`;
+      leaderBoard.innerHTML += `<div data-id="${id}" data-score="${playerData.score}">${playerData.userName}: ${playerData.score}</div>`;
       chatInputArea.style.display = "Flex"; // Chat input to visible
-
     } else {
       // Update leaderboard
       scoreElement.innerHTML = `${playerData.userName}: ${playerData.score}`;
@@ -55,8 +52,9 @@ socket.on("update-players", (playerDataBackend) => {
           frontEndPlayers[id].y += input.dy;
         });
       } else {
-        frontEndPlayers[id].x = playerData.x;
-        frontEndPlayers[id].y = playerData.y;
+        if (playerData.weapon && playerData.weapon.angle !== undefined) {
+          frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
+        }
         gsap.to(frontEndPlayers[id], {
           x: playerData.x,
           y: playerData.y,
@@ -87,7 +85,7 @@ socket.on("update-players", (playerDataBackend) => {
 
   // Clear the leaderboard and append sorted elements
   leaderBoard.innerHTML = "";
-  scoreElements.forEach(element => leaderBoard.appendChild(element));
+  scoreElements.forEach((element) => leaderBoard.appendChild(element));
 });
 
 socket.on("update-projectiles", (projectileDataBackend) => {
@@ -122,29 +120,30 @@ let sequenceNumber = 0;
 
 //setInterval: same tick rate as server
 setInterval(() => {
+  if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: -speed});
+    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed });
     frontEndPlayers[socket.id].y -= speed;
-    socket.emit("player-movement", {key: "up", sequenceNumber});
+    socket.emit("player-movement", { key: "up", sequenceNumber });
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: -speed, dy: 0});
+    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 });
     frontEndPlayers[socket.id].x -= speed;
-    socket.emit("player-movement", {key: "left", sequenceNumber});
+    socket.emit("player-movement", { key: "left", sequenceNumber });
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: speed});
+    playerInputs.push({ sequenceNumber, dx: 0, dy: speed });
     frontEndPlayers[socket.id].y += speed;
-    socket.emit("player-movement", {key: "down", sequenceNumber});
+    socket.emit("player-movement", { key: "down", sequenceNumber });
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: speed, dy: 0});
+    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 });
     frontEndPlayers[socket.id].x += speed;
-    socket.emit("player-movement", {key: "right", sequenceNumber});
+    socket.emit("player-movement", { key: "right", sequenceNumber });
   }
 }, 15);
 
@@ -154,14 +153,12 @@ function animate() {
   animationId = requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const id in frontEndPlayers) {
-    frontEndPlayers[id].draw();
-  }
   for (const id in frontEndProjectiles) {
     frontEndProjectiles[id].draw();
   }
-  if (frontEndPlayers[socket.id]) {
-    weapon.update(frontEndPlayers[socket.id].x, frontEndPlayers[socket.id].y);
+
+  for (const id in frontEndPlayers) {
+    frontEndPlayers[id].draw();
   }
 }
 
