@@ -2,14 +2,25 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d", { antialias: true });
 const socket = io();
 
-canvas.width = 1700;
-canvas.height = 1000;
+const mapWidth = 1920;
+const mapHeight = 1080;
+const cameraWidth = 960;
+const cameraHeight = 540;
+const zoomFactor = 2;
+canvas.width = cameraWidth * zoomFactor;
+canvas.height = cameraHeight * zoomFactor;
+
+const camera = {
+  x: 0,
+  y: 0
+};
+
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
 
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
-const speed = 10;
+const speed = 4;
 const leaderBoard = document.querySelector("#score-list");
 
 socket.on("update-players", (playerDataBackend) => {
@@ -24,7 +35,6 @@ socket.on("update-players", (playerDataBackend) => {
         color: playerData.color,
         x: playerData.x,
         y: playerData.y,
-        radius: 20,
       });
       // Add new player to the leaderboard
       leaderBoard.innerHTML += `<div data-id="${id}" data-score="${playerData.score}">${playerData.userName}: ${playerData.score}</div>`;
@@ -33,38 +43,34 @@ socket.on("update-players", (playerDataBackend) => {
       // Update leaderboard
       scoreElement.innerHTML = `${playerData.userName}: ${playerData.score}`;
       scoreElement.setAttribute("data-score", playerData.score);
+      // interpolation
+      frontEndPlayers[id].target = {
+        x: playerData.x,
+        y: playerData.y,
+      }
 
       if (id === socket.id) {
-        // Update player position from backend data
-        frontEndPlayers[id].x = playerData.x;
-        frontEndPlayers[id].y = playerData.y;
 
         const lastBackendInputIndex = playerInputs.findIndex((input) => {
           return playerData.sequenceNumber === input.sequenceNumber;
         });
 
-        // Lag compensation with gsap. If player inputs are delayed, interpolate player position
         if (lastBackendInputIndex > -1) {
           playerInputs.splice(0, lastBackendInputIndex + 1);
         }
+        // Apply all the inputs that have not been acknowledged by the server
         playerInputs.forEach((input) => {
-          frontEndPlayers[id].x += input.dx;
-          frontEndPlayers[id].y += input.dy;
+          frontEndPlayers[id].target.x += input.dx;
+          frontEndPlayers[id].target.y += input.dy;
         });
       } else {
         if (playerData.weapon && playerData.weapon.angle !== undefined) {
           frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
         }
-        gsap.to(frontEndPlayers[id], {
-          x: playerData.x,
-          y: playerData.y,
-          duration: 0.015,
-          ease: "linear",
-        });
+
       }
     }
   }
-
   // If ID does not exist in backend, remove player from frontend
   for (const id in frontEndPlayers) {
     if (!playerDataBackend[id]) {
@@ -153,12 +159,32 @@ function animate() {
   animationId = requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const id in frontEndProjectiles) {
-    frontEndProjectiles[id].draw();
+  // Update camera position to follow the player
+  if (frontEndPlayers[socket.id]) {
+    camera.x = frontEndPlayers[socket.id].x - cameraWidth / 2;
+    camera.y = frontEndPlayers[socket.id].y - cameraHeight / 2;
+
+    // Clamp camera to world bounds
+    camera.x = Math.max(0, Math.min(camera.x, mapWidth - cameraWidth));
+    camera.y = Math.max(0, Math.min(camera.y, mapHeight - cameraHeight));
   }
 
+  // Update the CSS background position
+  canvas.style.backgroundPosition = `${-camera.x * zoomFactor}px ${-camera.y * zoomFactor}px`;
+  canvas.style.backgroundSize = `${mapWidth * zoomFactor}px ${mapHeight * zoomFactor}px`;
+
+  // Draw game objects
   for (const id in frontEndPlayers) {
+    // liner interpolation for smooth movement if lag occurs
+    if (frontEndPlayers[id].target) {
+      frontEndPlayers[id].x += (frontEndPlayers[id].target.x - frontEndPlayers[id].x) * 0.1;
+        frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.1;
+    }
     frontEndPlayers[id].draw();
+  }
+
+  for (const id in frontEndProjectiles) {
+    frontEndProjectiles[id].draw();
   }
 }
 

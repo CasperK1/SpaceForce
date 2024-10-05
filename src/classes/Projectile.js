@@ -1,5 +1,5 @@
 class Projectile {
-  constructor({ x, y, radius, color = "white", velocity }) {
+  constructor({x, y, radius, color = "white", velocity}) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -10,31 +10,36 @@ class Projectile {
   }
 
   draw() {
-    // Draw the trail first
+    // Draw the trail
     for (let i = 0; i < this.trail.length; i++) {
-      const radius = this.radius * (i / this.trail.length);
+      const radius = this.radius * (i / this.trail.length) * 0.5;
+      const screenX = (this.trail[i].x - camera.x) * zoomFactor;
+      const screenY = (this.trail[i].y - camera.y) * zoomFactor;
       ctx.save();
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.trail[i].x, this.trail[i].y, radius, 0, Math.PI * 2, false);
+      ctx.arc(screenX, screenY, radius * zoomFactor, 0, Math.PI * 2, false);
       ctx.fill();
       ctx.restore();
     }
 
     // Draw the current projectile
+    const screenX = (this.x - camera.x) * zoomFactor;
+    const screenY = (this.y - camera.y) * zoomFactor;
     ctx.save();
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = 40;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    ctx.arc(screenX, screenY, this.radius * 0.5 * zoomFactor, 0, Math.PI * 2, false);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.restore();
 
-    // Update the trail with the current position
-    this.trail.push({ x: this.x, y: this.y });
+    // Update the trail
+    this.trail.push({x: this.x, y: this.y});
     if (this.trail.length > this.maxTrailLength) {
-      this.trail.shift(); // Remove the oldest position to maintain trail length
+      this.trail.shift();
     }
   }
 }
+

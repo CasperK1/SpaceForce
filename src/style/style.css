@@ -24,6 +24,7 @@ body, html {
 
 canvas {
     background-image: url("../assets/images/bg1.png");;
+     image-rendering: pixelated;
 }
 .username-container {
     position: absolute;

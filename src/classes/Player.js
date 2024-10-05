@@ -1,32 +1,34 @@
 class Player {
-  constructor({ x, y, radius, color, userName }) {
+  constructor({ x, y, color, userName }) {
     this.userName = userName;
     this.x = x;
     this.y = y;
-    this.radius = radius;
+    this.radius = 10;
     this.color = color;
     this.score = 0;
-    this.weapon = new Weapon({ x: 0, y: 0 });
+    this.weapon = new Weapon({});
   }
 
   draw() {
+    const screenX = (this.x - camera.x) * zoomFactor;
+    const screenY = (this.y - camera.y) * zoomFactor;
+
     // Username
     ctx.font = "20px Arial";
     ctx.fillStyle = "white";
-    const textWidth = ctx.measureText(this.userName).width; // Width of the text to center it
-    ctx.fillText(this.userName, this.x - textWidth / 2, this.y - 35);
+    const textWidth = ctx.measureText(this.userName).width;
+    ctx.fillText(this.userName, screenX - textWidth / 2, screenY - 35);
 
     // Draw player
     ctx.save();
     ctx.shadowColor = this.color;
     ctx.shadowBlur = 30;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    ctx.arc(screenX, screenY, this.radius * zoomFactor, 0, Math.PI * 2, false);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.restore();
 
-    // Draw weapon
-    this.weapon.update(this.x, this.y);
+    this.weapon.draw(this.x, this.y);
   }
 }

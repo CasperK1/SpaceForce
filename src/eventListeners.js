@@ -19,46 +19,40 @@ window.addEventListener("DOMContentLoaded", (event) => {
 // Shooting 🔫
 addEventListener("click", (e) => {
   if (!frontEndPlayers[socket.id]) return;
-  const { x, y } = canvas.getBoundingClientRect();
-  const weapon = frontEndPlayers[socket.id].weapon;
+  const player = frontEndPlayers[socket.id];
 
-  // Calculate the position of the weapon's tip
-  const weaponTipX = weapon.x + Math.cos(weapon.angle) * weapon.width;
-  const weaponTipY =
-    weapon.y + weapon.rotationPointY + Math.sin(weapon.angle) * weapon.width;
+  // Use the weapon's angle for shooting
+  const angle = player.weapon.angle;
 
-  const angle = Math.atan2(
-    e.clientY - y - weaponTipY,
-    e.clientX - x - weaponTipX,
-  );
+  // Calculate the barrel tip position in world coordinates.
+  const barrelTipX = player.x + Math.cos(angle) * player.weapon.width / 2;
+  const barrelTipY = player.y +  Math.sin(angle) * player.weapon.width / 2;
 
-  socket.emit("shoot", { x: weaponTipX, y: weaponTipY, angle });
+  socket.emit("shoot", {x: barrelTipX, y: barrelTipY, angle});
 });
 
 // Weapon movement
 addEventListener("mousemove", (e) => {
   if (!frontEndPlayers[socket.id]) return;
 
-  const { left, top } = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - left;
-  const mouseY = e.clientY - top;
+  const {left, top} = canvas.getBoundingClientRect();
+  const player = frontEndPlayers[socket.id];
 
-  // Update the weapon angle for the local player
-  frontEndPlayers[socket.id].weapon.updateAngle(mouseX, mouseY);
+  // Calculate mouse position
+  const mouseX = (e.clientX - left) / zoomFactor + camera.x;
+  const mouseY = (e.clientY - top) / zoomFactor + camera.y;
 
-  // Send the updated angle to the server
-  socket.emit("weapon-movement", {
-    angle: frontEndPlayers[socket.id].weapon.angle,
-  });
+  player.weapon.updateAngle(player.x, player.y, mouseX, mouseY);
+  socket.emit("weapon-movement", {angle: player.weapon.angle});
 });
 
 // Movement ♿
 
 const keys = {
-  up: { pressed: false },
-  left: { pressed: false },
-  down: { pressed: false },
-  right: { pressed: false },
+  up: {pressed: false},
+  left: {pressed: false},
+  down: {pressed: false},
+  right: {pressed: false},
 };
 
 addEventListener("keydown", (e) => {
