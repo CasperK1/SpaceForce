@@ -122,6 +122,7 @@ io.on("connection", (socket) => {
       y,
       velocity,
       playerId: socket.id,
+      angle,
     };
   });
 

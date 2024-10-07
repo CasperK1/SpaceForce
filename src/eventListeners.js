@@ -57,7 +57,8 @@ const keys = {
 
 addEventListener("keydown", (e) => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
-  switch (e.key) {
+  const key = e.key.toLowerCase();
+  switch (key) {
     case "w":
     case "ArrowUp":
       keys.up.pressed = true;
@@ -78,7 +79,8 @@ addEventListener("keydown", (e) => {
 });
 
 addEventListener("keyup", (e) => {
-  switch (e.key) {
+  const key = e.key.toLowerCase();
+  switch (key) {
     case "w":
     case "ArrowUp":
       keys.up.pressed = false;

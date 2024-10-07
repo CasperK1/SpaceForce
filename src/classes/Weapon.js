@@ -1,14 +1,17 @@
 class Weapon {
   constructor({ x, y }) {
-    this.height = 15;
-    this.width = 40;
+    this.image = new Image();
+    this.image.src = "assets/images/laser-rifle.png";
+    this.height = 70;
+    this.width = 75;
     this.angle = 0;
     this.rotationPointY = this.height / 2;
   }
 
   updateAngle(playerX, playerY, mouseX, mouseY) {
     this.angle = Math.atan2(
-      mouseY - playerY,
+      mouseY - playerY
+      ,
       mouseX - playerX
     );
   }
@@ -20,8 +23,7 @@ class Weapon {
     ctx.save();
     ctx.translate(screenX, screenY);
     ctx.rotate(this.angle);
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(0, -this.rotationPointY, this.width, this.height);
+    ctx.drawImage(this.image, 0, -this.rotationPointY, this.width, this.height);
     ctx.restore();
   }
 }

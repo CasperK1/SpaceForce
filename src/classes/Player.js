@@ -1,9 +1,11 @@
 class Player {
   constructor({ x, y, color, userName }) {
     this.userName = userName;
+    this.playerImage = new Image();
+    this.playerImage.src = "assets/images/spaceman.png";
     this.x = x;
     this.y = y;
-    this.radius = 10;
+    this.radius = 7;
     this.color = color;
     this.score = 0;
     this.weapon = new Weapon({});
@@ -22,13 +24,13 @@ class Player {
     // Draw player
     ctx.save();
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = 30;
+    ctx.shadowBlur = 80;
     ctx.beginPath();
     ctx.arc(screenX, screenY, this.radius * zoomFactor, 0, Math.PI * 2, false);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.restore();
-
+    ctx.drawImage(this.playerImage, screenX - 80, screenY -100 , 150, 150);
     this.weapon.draw(this.x, this.y);
   }
 }

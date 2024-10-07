@@ -92,8 +92,12 @@ socket.on("update-projectiles", (projectileDataBackend) => {
         radius: 5,
         color: frontEndPlayers[projectileData.playerId]?.color,
         velocity: projectileData.velocity,
+        angle: projectileData.angle,
+
+
       });
     } else {
+
       frontEndProjectiles[id].x = projectileData.x;
       frontEndProjectiles[id].y = projectileData.y;
     }
@@ -106,7 +110,6 @@ socket.on("update-projectiles", (projectileDataBackend) => {
     }
   }
 });
-
 
 //setInterval: same tick rate as server
 setInterval(() => {
