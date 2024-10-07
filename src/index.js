@@ -130,22 +130,22 @@ setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: -1});
+    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
     socket.emit("player-movement", {key: "up", sequenceNumber});
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: -1, dy: 0});
+    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
     socket.emit("player-movement", {key: "left", sequenceNumber});
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: 1});
+    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
     socket.emit("player-movement", {key: "down", sequenceNumber});
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 1, dy: 0});
+    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
     socket.emit("player-movement", {key: "right", sequenceNumber});
   }
   if (!keys.up.pressed && !keys.left.pressed && !keys.down.pressed && !keys.right.pressed) {
