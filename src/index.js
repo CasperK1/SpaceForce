@@ -45,8 +45,8 @@ socket.on("update-players", (playerDataBackend) => {
       scoreElement.setAttribute("data-score", playerData.score);
       // interpolation
       frontEndPlayers[id].target = {
-        x: playerData.x,
-        y: playerData.y,
+        x: playerData.velocity.x + playerData.x,
+        y: playerData.velocity.y + playerData.y,
       }
 
       if (id === socket.id) {
@@ -176,8 +176,8 @@ function animate() {
   for (const id in frontEndPlayers) {
     // liner interpolation for smooth movement if lag occurs
     if (frontEndPlayers[id].target) {
-      frontEndPlayers[id].x += (frontEndPlayers[id].target.x - frontEndPlayers[id].x) * 0.1;
-      frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.1;
+      frontEndPlayers[id].x += (frontEndPlayers[id].target.x - frontEndPlayers[id].x) * 0.05;
+      frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.05;
     }
     frontEndPlayers[id].draw();
   }
