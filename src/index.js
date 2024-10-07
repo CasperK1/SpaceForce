@@ -46,19 +46,6 @@ socket.on("update-players", (playerDataBackend) => {
       if (id === socket.id) {
         frontEndPlayers[id].x = playerData.x
         frontEndPlayers[id].y = playerData.y
-        const lastBackendInputIndex = playerInputs.findIndex((input) => {
-          return playerData.sequenceNumber === input.sequenceNumber;
-        });
-
-        // Remove acknowledged inputs
-        if (lastBackendInputIndex > -1) {
-          playerInputs.splice(0, lastBackendInputIndex + 1);
-        }
-        // Apply all the inputs that have not been acknowledged by the server
-        playerInputs.forEach((input) => {
-          frontEndPlayers[id].x += input.dx;
-          frontEndPlayers[id].y += input.dy;
-        });
       } else {
         if (playerData.weapon && playerData.weapon.angle !== undefined) {
           frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
@@ -120,37 +107,24 @@ socket.on("update-projectiles", (projectileDataBackend) => {
   }
 });
 
-// Sequence number for lag compensation:
-// allows the server to reconstruct order of player inputs if they arrive delayed or out of order due to network issues
-const playerInputs = [];
-let sequenceNumber = 0;
 
 //setInterval: same tick rate as server
 setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
   if (keys.up.pressed) {
-    sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
-    socket.emit("player-movement", {key: "up", sequenceNumber});
+    socket.emit("player-movement", {key: "up"});
   }
   if (keys.left.pressed) {
-    sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
-    socket.emit("player-movement", {key: "left", sequenceNumber});
+    socket.emit("player-movement", {key: "left"});
   }
   if (keys.down.pressed) {
-    sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
-    socket.emit("player-movement", {key: "down", sequenceNumber});
+    socket.emit("player-movement", {key: "down"});
   }
   if (keys.right.pressed) {
-    sequenceNumber++;
-    playerInputs.push({sequenceNumber, dx: 0, dy: 0});
-    socket.emit("player-movement", {key: "right", sequenceNumber});
+    socket.emit("player-movement", {key: "right"});
   }
   if (!keys.up.pressed && !keys.left.pressed && !keys.down.pressed && !keys.right.pressed) {
-    sequenceNumber++;
-    socket.emit("player-movement", {key: "none", sequenceNumber});
+    socket.emit("player-movement", {key: "none"});
   }
 
 }, 15);

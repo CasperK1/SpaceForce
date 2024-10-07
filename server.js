@@ -31,7 +31,6 @@ io.on("connection", (socket) => {
       x: 1900 * Math.random(),
       y: 1000 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-      sequenceNumber: 0,
       score: 0,
       userName,
       weapon: {x: 0, y: 0, angle: 0},
@@ -55,10 +54,9 @@ io.on("connection", (socket) => {
   });
 
   // Player movement
-  socket.on("player-movement", ({key, sequenceNumber}) => {
+  socket.on("player-movement", ({key}) => {
     if (!backEndPlayers[socket.id]) return; // error handling if player does not exist
     const backendPlayer = backEndPlayers[socket.id];
-    backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
       case "up":
         backEndPlayers[socket.id].acceleration.y = -accelerationRate;
