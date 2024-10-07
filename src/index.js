@@ -20,7 +20,7 @@ ctx.imageSmoothingQuality = "high";
 
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
-const speed = 4;
+const speedFrontend = 4
 const leaderBoard = document.querySelector("#score-list");
 
 socket.on("update-players", (playerDataBackend) => {
@@ -50,11 +50,11 @@ socket.on("update-players", (playerDataBackend) => {
       }
 
       if (id === socket.id) {
-
+        // Find the last acknowledged input
         const lastBackendInputIndex = playerInputs.findIndex((input) => {
           return playerData.sequenceNumber === input.sequenceNumber;
         });
-
+        // Remove acknowledged inputs
         if (lastBackendInputIndex > -1) {
           playerInputs.splice(0, lastBackendInputIndex + 1);
         }
@@ -75,12 +75,10 @@ socket.on("update-players", (playerDataBackend) => {
   for (const id in frontEndPlayers) {
     if (!playerDataBackend[id]) {
       const divDel = document.querySelector(`div[data-id="${id}"]`);
-
       divDel.remove();
       delete frontEndPlayers[id];
     }
   }
-
   // Sort the leaderboard
   const scoreElements = Array.from(leaderBoard.children);
   scoreElements.sort((a, b) => {
@@ -129,28 +127,29 @@ setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
   if (keys.up.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed });
-    frontEndPlayers[socket.id].y -= speed;
+    playerInputs.push({ sequenceNumber, dx: 0, dy: -speedFrontend });
     socket.emit("player-movement", { key: "up", sequenceNumber });
   }
   if (keys.left.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 });
-    frontEndPlayers[socket.id].x -= speed;
+    playerInputs.push({ sequenceNumber, dx: -speedFrontend, dy: 0 });
     socket.emit("player-movement", { key: "left", sequenceNumber });
   }
   if (keys.down.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: 0, dy: speed });
-    frontEndPlayers[socket.id].y += speed;
+    playerInputs.push({ sequenceNumber, dx: 0, dy: speedFrontend });
     socket.emit("player-movement", { key: "down", sequenceNumber });
   }
   if (keys.right.pressed) {
     sequenceNumber++;
-    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 });
-    frontEndPlayers[socket.id].x += speed;
+    playerInputs.push({ sequenceNumber, dx: speedFrontend, dy: 0 });
     socket.emit("player-movement", { key: "right", sequenceNumber });
   }
+  if (!keys.up.pressed && !keys.left.pressed && !keys.down.pressed && !keys.right.pressed) {
+    sequenceNumber++;
+    socket.emit("player-movement", { key: "none", sequenceNumber });
+  }
+
 }, 15);
 
 let animationId;
@@ -178,7 +177,7 @@ function animate() {
     // liner interpolation for smooth movement if lag occurs
     if (frontEndPlayers[id].target) {
       frontEndPlayers[id].x += (frontEndPlayers[id].target.x - frontEndPlayers[id].x) * 0.1;
-        frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.1;
+      frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.1;
     }
     frontEndPlayers[id].draw();
   }

@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const {Server} = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -12,7 +12,8 @@ const port = process.env.PORT || 3000;
 const backEndPlayers = {};
 const backEndProjectiles = {};
 let projectileId = 0;
-const speed = 4;
+const accelerationRate = 0.09;
+const friction = 0.97;
 
 app.use(express.static(__dirname + "/src"));
 
@@ -25,17 +26,19 @@ io.on("connection", (socket) => {
   console.log(`a user connected ${socket.id}`);
 
   // Game initialization
-  socket.on("init-game", ({ width, height, userName }) => {
+  socket.on("init-game", ({width, height, userName}) => {
     backEndPlayers[socket.id] = {
-      x: 1700 * Math.random(),
+      x: 1900 * Math.random(),
       y: 1000 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNumber: 0,
       score: 0,
       userName,
-      weapon: { x: 0, y: 0, angle: 0 },
+      weapon: {x: 0, y: 0, angle: 0},
+      acceleration: {x: 0, y: 0},
+      velocity: {x: 0, y: 0},
     };
-    backEndPlayers[socket.id].canvas = { width, height };
+    backEndPlayers[socket.id].canvas = {width, height};
     backEndPlayers[socket.id].radius = 10;
     backEndPlayers[socket.id].userName = userName;
 
@@ -52,24 +55,32 @@ io.on("connection", (socket) => {
   });
 
   // Player movement
-  socket.on("player-movement", ({ key, sequenceNumber }) => {
+  socket.on("player-movement", ({key, sequenceNumber}) => {
     if (!backEndPlayers[socket.id]) return; // error handling if player does not exist
     const backendPlayer = backEndPlayers[socket.id];
     backEndPlayers[socket.id].sequenceNumber = sequenceNumber;
     switch (key) {
       case "up":
-        backEndPlayers[socket.id].y -= speed;
+        backEndPlayers[socket.id].acceleration.y = -accelerationRate;
         break;
       case "down":
-        backEndPlayers[socket.id].y += speed;
+        backEndPlayers[socket.id].acceleration.y = accelerationRate;
         break;
       case "left":
-        backEndPlayers[socket.id].x -= speed;
+        backEndPlayers[socket.id].acceleration.x = -accelerationRate;
+        backEndPlayers[socket.id].y += 0.2;
         break;
       case "right":
-        backEndPlayers[socket.id].x += speed;
+        backEndPlayers[socket.id].acceleration.x = accelerationRate;
+        backEndPlayers[socket.id].y += 0.2;
+        break;
+      default:
+        backEndPlayers[socket.id].acceleration.x = 0;
+        backEndPlayers[socket.id].acceleration.y = 0;
+        backEndPlayers[socket.id].y += 0.2;
         break;
     }
+
     const playerSides = {
       left: backendPlayer.x - backendPlayer.radius,
       right: backendPlayer.x + backendPlayer.radius,
@@ -95,13 +106,13 @@ io.on("connection", (socket) => {
   });
 
   // Weapon movement
-  socket.on("weapon-movement", ({ angle }) => {
+  socket.on("weapon-movement", ({angle}) => {
     if (!backEndPlayers[socket.id]) return; // error handling if player does not exist
-    backEndPlayers[socket.id].weapon = { angle };
+    backEndPlayers[socket.id].weapon = {angle};
   });
 
   // Shooting
-  socket.on("shoot", ({ x, y, angle }) => {
+  socket.on("shoot", ({x, y, angle}) => {
     projectileId++;
     const velocity = {
       x: Math.cos(angle) * 6,
@@ -175,6 +186,17 @@ setInterval(() => {
         break;
       }
     }
+  }
+  // update movement constantly for friction to work
+  for (const playerId in backEndPlayers) {
+    const backEndPlayer = backEndPlayers[playerId];
+    backEndPlayer.velocity.y += backEndPlayer.acceleration.y;
+    backEndPlayer.velocity.x += backEndPlayer.acceleration.x;
+    backEndPlayer.velocity.x *= friction;
+    backEndPlayer.velocity.y *= friction;
+    backEndPlayer.x += backEndPlayer.velocity.x
+    backEndPlayer.y += backEndPlayer.velocity.y
+    backEndPlayer.y += 0.2;
   }
 
   io.emit("update-projectiles", backEndProjectiles);
