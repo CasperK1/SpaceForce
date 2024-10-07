@@ -50,10 +50,12 @@ socket.on("update-players", (playerDataBackend) => {
       }
 
       if (id === socket.id) {
-        // Find the last acknowledged input
+        frontEndPlayers[id].x = playerData.x
+        frontEndPlayers[id].y = playerData.y
         const lastBackendInputIndex = playerInputs.findIndex((input) => {
           return playerData.sequenceNumber === input.sequenceNumber;
         });
+
         // Remove acknowledged inputs
         if (lastBackendInputIndex > -1) {
           playerInputs.splice(0, lastBackendInputIndex + 1);
@@ -67,6 +69,12 @@ socket.on("update-players", (playerDataBackend) => {
         if (playerData.weapon && playerData.weapon.angle !== undefined) {
           frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
         }
+        gsap.to(frontEndPlayers[id], {
+          x: playerData.x,
+          y: playerData.y,
+          duration: 0.015,
+          ease: 'linear'
+        })
 
       }
     }
@@ -174,14 +182,9 @@ function animate() {
 
   // Draw game objects
   for (const id in frontEndPlayers) {
-    // liner interpolation for smooth movement if lag occurs
-    if (frontEndPlayers[id].target) {
-      frontEndPlayers[id].x += (frontEndPlayers[id].target.x - frontEndPlayers[id].x) * 0.1;
-      frontEndPlayers[id].y += (frontEndPlayers[id].target.y - frontEndPlayers[id].y) * 0.1;
-    }
-    frontEndPlayers[id].draw();
+    const frontEndPlayer = frontEndPlayers[id]
+    frontEndPlayer.draw()
   }
-
   for (const id in frontEndProjectiles) {
     frontEndProjectiles[id].draw();
   }
