@@ -15,12 +15,6 @@ class Player {
     const screenX = (this.x - camera.x) * zoomFactor;
     const screenY = (this.y - camera.y) * zoomFactor;
 
-    // Username
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "white";
-    const textWidth = ctx.measureText(this.userName).width;
-    ctx.fillText(this.userName, screenX - textWidth / 2, screenY - 35);
-
     // Draw player
     ctx.save();
     ctx.shadowColor = this.color;
@@ -32,5 +26,11 @@ class Player {
     ctx.restore();
     ctx.drawImage(this.playerImage, screenX - 80, screenY -100 , 150, 150);
     this.weapon.draw(this.x, this.y);
+
+    // Username
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "white";
+    const textWidth = ctx.measureText(this.userName).width;
+    ctx.fillText(this.userName, screenX - textWidth / 2, screenY - 90);
   }
 }
