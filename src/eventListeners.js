@@ -25,34 +25,34 @@ addEventListener("click", (e) => {
   const angle = player.weapon.angle;
 
   // Calculate the barrel tip position in world coordinates.
-  const barrelTipX = player.x + Math.cos(angle) * player.weapon.width / 2;
-  const barrelTipY = player.y +  Math.sin(angle) * player.weapon.width / 2;
+  const barrelTipX = player.x + (Math.cos(angle) * player.weapon.width) / 2;
+  const barrelTipY = player.y + (Math.sin(angle) * player.weapon.width) / 2;
 
-  socket.emit("shoot", {x: barrelTipX, y: barrelTipY, angle});
+  socket.emit("shoot", { x: barrelTipX, y: barrelTipY, angle });
 });
 
 // Weapon movement
 addEventListener("mousemove", (e) => {
   if (!frontEndPlayers[socket.id]) return;
 
-  const {left, top} = canvas.getBoundingClientRect();
+  const { left, top } = canvas.getBoundingClientRect();
   const player = frontEndPlayers[socket.id];
 
   // Calculate mouse position
   const mouseX = (e.clientX - left) / zoomFactor + camera.x;
   const mouseY = (e.clientY - top) / zoomFactor + camera.y;
-
+  player.updateImage();
   player.weapon.updateAngle(player.x, player.y, mouseX, mouseY);
-  socket.emit("weapon-movement", {angle: player.weapon.angle});
+  socket.emit("weapon-movement", { angle: player.weapon.angle });
 });
 
 // Movement ♿
 
 const keys = {
-  up: {pressed: false},
-  left: {pressed: false},
-  down: {pressed: false},
-  right: {pressed: false},
+  up: { pressed: false },
+  left: { pressed: false },
+  down: { pressed: false },
+  right: { pressed: false },
 };
 
 addEventListener("keydown", (e) => {

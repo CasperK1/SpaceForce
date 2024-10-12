@@ -26,7 +26,7 @@ body, html {
 canvas {
     background-image: url("../assets/images/bg1.png");;
      image-rendering: pixelated;
-    cursor: url("../assets/images/9.png") 15 15, auto;
+    cursor: url("../assets/images/crosshair.png") 15 15, auto;
 }
 .username-container {
     position: absolute;

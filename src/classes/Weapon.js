@@ -1,7 +1,7 @@
 class Weapon {
-  constructor({ x, y }) {
+  constructor() {
     this.image = new Image();
-    this.image.src = "assets/images/laser-rifle.png";
+    this.image.src = "assets/images/laser-rifle-right.png";
     this.height = 70;
     this.width = 75;
     this.angle = 0;
@@ -9,11 +9,12 @@ class Weapon {
   }
 
   updateAngle(playerX, playerY, mouseX, mouseY) {
-    this.angle = Math.atan2(
-      mouseY - playerY
-      ,
-      mouseX - playerX
-    );
+    this.angle = Math.atan2(mouseY - playerY, mouseX - playerX);
+    if (Math.abs((this.angle * 180) / Math.PI) > 90) {
+      this.image.src = "assets/images/laser-rifle-left.png";
+    } else {
+      this.image.src = "assets/images/laser-rifle-right.png";
+    }
   }
 
   draw(playerX, playerY) {
