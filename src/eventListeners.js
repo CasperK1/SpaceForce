@@ -31,7 +31,7 @@ addEventListener("click", (e) => {
   socket.emit("shoot", { x: barrelTipX, y: barrelTipY, angle });
 });
 
-// Weapon movement
+// Weapon & player model movement
 addEventListener("mousemove", (e) => {
   if (!frontEndPlayers[socket.id]) return;
 
@@ -41,7 +41,7 @@ addEventListener("mousemove", (e) => {
   // Calculate mouse position
   const mouseX = (e.clientX - left) / zoomFactor + camera.x;
   const mouseY = (e.clientY - top) / zoomFactor + camera.y;
-  player.updateImage();
+  player.updatePlayerModel();
   player.weapon.updateAngle(player.x, player.y, mouseX, mouseY);
   socket.emit("weapon-movement", { angle: player.weapon.angle });
 });

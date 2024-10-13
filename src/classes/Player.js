@@ -8,26 +8,20 @@ class Player {
     this.radius = 7;
     this.color = color;
     this.score = 0;
-    this.weapon = new Weapon({});
-    this.jetpack = new JetpackEffect(x, y); // Add jetpack
+    this.weapon = new Weapon();
+    this.jetpack = new JetpackEffect(x, y);
+    this.direction = "right";
+    this.velocity = { x: 0, y: 0 };
   }
 
-  updateImage() {
+  updatePlayerModel() {
     if (Math.abs((this.weapon.angle * 180) / Math.PI) > 90) {
       this.playerImage.src = "assets/images/spaceman-left.png";
+      this.direction = "left";
     } else {
       this.playerImage.src = "assets/images/spaceman-right.png";
+      this.direction = "right";
     }
-  }
-
-  update() {
-    // Add any existing update logic here
-    this.updateImage();
-
-    // Update jetpack position and particles
-    this.jetpack.x = this.x + 10;
-    this.jetpack.y = this.y;
-    this.jetpack.update();
   }
 
   draw() {
@@ -43,13 +37,11 @@ class Player {
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.restore();
-
-    // Draw player image
     ctx.drawImage(this.playerImage, screenX - 80, screenY - 100, 150, 150);
 
     // Draw weapon, jetpack
     this.weapon.draw(this.x, this.y);
-    this.jetpack.draw(this.x, this.y);
+    this.jetpack.draw(this.x, this.y, this.velocity.x, this.velocity.y, this.direction);
 
     // Username
     ctx.font = "20px Arial";

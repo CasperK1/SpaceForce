@@ -44,20 +44,29 @@ socket.on("update-players", (playerDataBackend) => {
       scoreElement.setAttribute("data-score", playerData.score);
 
       if (id === socket.id) {
-        frontEndPlayers[id].x = playerData.x
-        frontEndPlayers[id].y = playerData.y
+        // Calculate velocity
+        frontEndPlayers[id].velocity = {
+          x: playerData.x - frontEndPlayers[id].x,
+          y: playerData.y - frontEndPlayers[id].y
+        };
+        frontEndPlayers[id].x = playerData.x;
+        frontEndPlayers[id].y = playerData.y;
       } else {
         if (playerData.weapon && playerData.weapon.angle !== undefined) {
           frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
         }
+        // Calculate velocity for other players
+        frontEndPlayers[id].velocity = {
+          x: playerData.x - frontEndPlayers[id].x,
+          y: playerData.y - frontEndPlayers[id].y
+        };
         gsap.to(frontEndPlayers[id], {
           x: playerData.x,
           y: playerData.y,
           duration: 0.015,
           ease: "power2.out",
           overwrite: "auto"
-        })
-
+        });
       }
     }
   }
@@ -114,6 +123,7 @@ socket.on("update-projectiles", (projectileDataBackend) => {
 //setInterval: same tick rate as server
 setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
+  const player = frontEndPlayers[socket.id];
   if (keys.up.pressed) {
     socket.emit("player-movement", {key: "up"});
   }
