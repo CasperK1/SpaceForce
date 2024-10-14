@@ -4,9 +4,9 @@ const socket = io();
 
 const mapWidth = 1920;
 const mapHeight = 1080;
-const cameraWidth = 1920;
-const cameraHeight = 1080;
-const zoomFactor = 1;
+const cameraWidth = 960;
+const cameraHeight = 540;
+const zoomFactor = 2;
 canvas.width = cameraWidth * zoomFactor;
 canvas.height = cameraHeight * zoomFactor;
 
@@ -139,7 +139,6 @@ socket.on('update-junk', (junkData) => {
 //setInterval: same tick rate as server
 setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
-  const player = frontEndPlayers[socket.id];
   if (keys.up.pressed) {
     socket.emit("player-movement", {key: "up"});
   }
