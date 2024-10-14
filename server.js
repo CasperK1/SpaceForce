@@ -8,16 +8,7 @@ const io = new Server(server, {
   pingTimeout: 5000,
 });
 const port = process.env.PORT || 3000;
-const Matter = require('matter-js');
-const Engine = Matter.Engine,
-  World = Matter.World,
-  Bodies = Matter.Bodies,
-  Body = Matter.Body,
-  Composite = Matter.Composite;
-const engine = Engine.create({
-  enableSleeping: false,
-  gravity: {x: 0, y: 0},
-});
+const { updateSpaceJunk, getJunkData } = require('./matterJS');
 
 const backEndPlayers = {};
 const backEndProjectiles = {};
@@ -25,26 +16,6 @@ let projectileId = 0;
 const accelerationRate = 0.09;
 const friction = 0.97;
 
-// Space Junk with matter.js
-const spaceJunkComposite = Composite.create({label: 'Space Junk'});
-for (let i = 0; i < 50; i++) {
-  const x = Math.random() * 1920;
-  const y = Math.random() * 1080;
-  const radius = Math.random() * 20 + 5;
-
-  const junk = Bodies.circle(x, y, radius, {
-    friction: 0.03,
-    frictionAir: 0,
-    restitution: 0.05,
-    inverseInertia: 0,
-  });
-  Body.setMass(junk, radius * 0.1);
-  Body.setAngularVelocity(junk, 0.001 + Math.random() * 0.03);
-  Body.setVelocity(junk, {x: 0.001 + Math.random() * (0.1 - 0.01), y: 0.001 + Math.random() * (0.1 - 0.01)});
-  Composite.add(spaceJunkComposite, junk);
-}
-
-World.add(engine.world, spaceJunkComposite);
 
 app.use(express.static(__dirname + "/src"));
 
@@ -67,6 +38,7 @@ io.on("connection", (socket) => {
       weapon: {x: 0, y: 0, angle: 0},
       acceleration: {x: 0, y: 0},
       velocity: {x: 0, y: 0},
+      jetpack: { jetpackOn: false },
     };
     backEndPlayers[socket.id].canvas = {width, height};
     backEndPlayers[socket.id].radius = 10;
@@ -91,6 +63,7 @@ io.on("connection", (socket) => {
     switch (key) {
       case "up":
         backEndPlayers[socket.id].acceleration.y = -accelerationRate;
+        backEndPlayers[socket.id].jetpack.jetpackOn = true;
         break;
       case "down":
         backEndPlayers[socket.id].acceleration.y = accelerationRate;
@@ -107,6 +80,8 @@ io.on("connection", (socket) => {
         backEndPlayers[socket.id].acceleration.x = 0;
         backEndPlayers[socket.id].acceleration.y = 0;
         backEndPlayers[socket.id].y += 0.2;
+        backEndPlayers[socket.id].jetpack.jetpackOn = false;
+
         break;
     }
 
@@ -179,7 +154,7 @@ io.on("connection", (socket) => {
 
 setInterval(() => {
   //Matter.js
-  Engine.update(engine, 15);
+  updateSpaceJunk();
 
   // Update projectile positions
   for (const id in backEndProjectiles) {
@@ -232,15 +207,8 @@ setInterval(() => {
     backEndPlayer.y += 0.2;
   }
 
-  const junkData = Composite.allBodies(spaceJunkComposite).map(junk => ({
-    x: junk.position.x,
-    y: junk.position.y,
-    radius: junk.circleRadius,
-    angle: junk.angle,
-  }));
 
-
-  io.emit('update-junk', junkData);
+  io.emit('update-junk', getJunkData());
   io.emit("update-projectiles", backEndProjectiles);
   io.emit("update-players", backEndPlayers);
 }, 15);

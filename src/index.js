@@ -4,9 +4,9 @@ const socket = io();
 
 const mapWidth = 1920;
 const mapHeight = 1080;
-const cameraWidth = 960;
-const cameraHeight = 540;
-const zoomFactor = 2;
+const cameraWidth = 1920;
+const cameraHeight = 1080;
+const zoomFactor = 1;
 canvas.width = cameraWidth * zoomFactor;
 canvas.height = cameraHeight * zoomFactor;
 
@@ -57,7 +57,16 @@ socket.on("update-players", (playerDataBackend) => {
       } else {
         if (playerData.weapon && playerData.weapon.angle !== undefined) {
           frontEndPlayers[id].weapon.angle = playerData.weapon.angle;
+          if (Math.abs((playerData.weapon.angle * 180) / Math.PI) > 90) {
+            frontEndPlayers[id].weapon.image.src = "assets/images/laser-rifle-left.png";
+          } else {
+            frontEndPlayers[id].weapon.image.src = "assets/images/laser-rifle-right.png";
+          }
         }
+        if (playerData.jetpack && playerData.jetpack.jetpackOn !== undefined) {
+          frontEndPlayers[id].jetpack.jetpackOn = playerData.jetpack.jetpackOn;
+        }
+
         // Calculate velocity for other players
         frontEndPlayers[id].velocity = {
           x: playerData.x - frontEndPlayers[id].x,
@@ -72,6 +81,7 @@ socket.on("update-players", (playerDataBackend) => {
         });
       }
     }
+
   }
   // If ID does not exist in backend, remove player from frontend
   for (const id in frontEndPlayers) {
@@ -105,8 +115,6 @@ socket.on("update-projectiles", (projectileDataBackend) => {
         color: frontEndPlayers[projectileData.playerId]?.color,
         velocity: projectileData.velocity,
         angle: projectileData.angle,
-
-
       });
     } else {
 
@@ -168,6 +176,7 @@ function animate() {
     ctx.rotate(junk.angle || 0);
     ctx.drawImage(meteorTexture, -size / 2, -size / 2, size, size);
     ctx.restore();
+
   });
 
   // Update camera position to follow the player
@@ -186,6 +195,7 @@ function animate() {
 
   // Draw game objects
   for (const id in frontEndPlayers) {
+    frontEndPlayers[id].updatePlayerModel()
     frontEndPlayers[id].draw()
   }
   for (const id in frontEndProjectiles) {

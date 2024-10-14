@@ -41,10 +41,10 @@ addEventListener("mousemove", (e) => {
   // Calculate mouse position
   const mouseX = (e.clientX - left) / zoomFactor + camera.x;
   const mouseY = (e.clientY - top) / zoomFactor + camera.y;
-  player.updatePlayerModel();
   player.weapon.updateAngle(player.x, player.y, mouseX, mouseY);
-  socket.emit("weapon-movement", { angle: player.weapon.angle });
+  socket.emit("weapon-movement", { angle: player.weapon.angle, mouseY, mouseX });
 });
+
 
 // Movement ♿
 
@@ -86,7 +86,6 @@ addEventListener("keyup", (e) => {
     case "ArrowUp":
       keys.up.pressed = false;
       frontEndPlayers[socket.id].jetpack.jetpackOn = false;
-
       break;
     case "a":
     case "ArrowLeft":
