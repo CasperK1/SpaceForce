@@ -21,6 +21,9 @@ ctx.imageSmoothingQuality = "high";
 const frontEndPlayers = {};
 const frontEndProjectiles = {};
 const leaderBoard = document.querySelector("#score-list");
+let spaceJunk = [];
+const meteorTexture = new Image();
+meteorTexture.src = '/assets/images/meteor_small.png';
 
 socket.on("update-players", (playerDataBackend) => {
   for (const id in playerDataBackend) {
@@ -120,6 +123,11 @@ socket.on("update-projectiles", (projectileDataBackend) => {
   }
 });
 
+// Update local junk data
+socket.on('update-junk', (junkData) => {
+  spaceJunk = junkData;
+});
+
 //setInterval: same tick rate as server
 setInterval(() => {
   if (!frontEndPlayers[socket.id]) return; // error handling if player does not exist
@@ -147,6 +155,20 @@ let animationId;
 function animate() {
   animationId = requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // matter.js
+  ctx.save();
+  spaceJunk.forEach(junk => {
+    const screenX = (junk.x - camera.x) * zoomFactor;
+    const screenY = (junk.y - camera.y) * zoomFactor;
+    const size = junk.radius * 2 * zoomFactor;
+
+    ctx.save();
+    ctx.translate(screenX, screenY);
+    ctx.rotate(junk.angle || 0);
+    ctx.drawImage(meteorTexture, -size / 2, -size / 2, size, size);
+    ctx.restore();
+  });
 
   // Update camera position to follow the player
   if (frontEndPlayers[socket.id]) {

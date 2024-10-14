@@ -5,7 +5,7 @@ class Player {
     this.playerImage.src = "assets/images/spaceman-right.png";
     this.x = x;
     this.y = y;
-    this.radius = 7;
+    this.radius = 5;
     this.color = color;
     this.score = 0;
     this.weapon = new Weapon();
@@ -44,7 +44,7 @@ class Player {
     this.jetpack.draw(this.x, this.y, this.velocity.x, this.velocity.y, this.direction);
 
     // Username
-    ctx.font = "20px Arial";
+    ctx.font = "bold 22px Arial";
     ctx.fillStyle = "white";
     const textWidth = ctx.measureText(this.userName).width;
     ctx.fillText(this.userName, screenX - textWidth / 2, screenY - 90);

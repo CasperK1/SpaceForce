@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
-
   "scripts": {
     "server": "node server.js"
   },
@@ -12,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.0",
+    "matter-js": "^0.20.0",
     "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
     "socket.io": "^4.7.5",

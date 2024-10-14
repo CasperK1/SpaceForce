@@ -1,8 +1,11 @@
 class JetpackEffect {
   constructor(x, y) {
+    this.jetpackOn = false;
     this.x = x;
     this.y = y;
     this.particles = [];
+    this.cooldownTimer = 0;
+    this.maxCooldownTime = 60;
   }
 
   createFlameParticle(velocityX, velocityY) {
@@ -22,14 +25,14 @@ class JetpackEffect {
     const size = Math.random() * 3 + 2;
     const speedX = (Math.random() - 0.5) * 0.5 - velocityX * 0.3;
     const speedY = Math.random() + 1 - velocityY * 0.5;
-    const life = Math.random() * 50 + 30;
+    const life = Math.random() * 30 + 10;
     this.particles.push(
       new Particle(this.x, this.y, color, size, speedX, speedY, life),
     );
   }
 
   createFlame(velocityX, velocityY) {
-    const flameHeight = 50;
+    const flameHeight = this.jetpackOn ? 50 : 50 * (this.cooldownTimer / this.maxCooldownTime);
     const flameWidth = 1;
     const numParticles = 10;
     const colors = ["#ff001e", "#ffa600", "#ff5a1e", "#edad64"];
@@ -77,8 +80,20 @@ class JetpackEffect {
     this.particles.forEach((particle) => particle.draw());
     this.particles = this.particles.filter((particle) => particle.life > 0);
 
-    this.createFlameParticle(velocityX, velocityY);
-    this.createSmokeParticle(velocityX, velocityY);
-    this.createFlame(velocityX, velocityY);
+    if (this.jetpackOn) {
+      this.cooldownTimer = this.maxCooldownTime;
+      this.createFlameParticle(velocityX, velocityY);
+      this.createSmokeParticle(velocityX, velocityY);
+    } else if (this.cooldownTimer > 0) {
+      this.cooldownTimer--;
+      // when cooldown progresses particles are created less frequently.
+      if (Math.random()  < this.cooldownTimer / this.maxCooldownTime) {
+        this.createFlameParticle(velocityX, velocityY);
+        this.createSmokeParticle(velocityX, velocityY);
+      }
+    }
+    if (this.cooldownTimer > 0) {
+      this.createFlame(velocityX, velocityY);
+    }
   }
 }

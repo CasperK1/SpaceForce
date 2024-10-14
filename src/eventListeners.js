@@ -62,6 +62,7 @@ addEventListener("keydown", (e) => {
     case "w":
     case "ArrowUp":
       keys.up.pressed = true;
+      frontEndPlayers[socket.id].jetpack.jetpackOn = true;
       break;
     case "a":
     case "ArrowLeft":
@@ -84,6 +85,8 @@ addEventListener("keyup", (e) => {
     case "w":
     case "ArrowUp":
       keys.up.pressed = false;
+      frontEndPlayers[socket.id].jetpack.jetpackOn = false;
+
       break;
     case "a":
     case "ArrowLeft":
