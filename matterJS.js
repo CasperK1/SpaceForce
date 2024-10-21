@@ -16,8 +16,10 @@ const engine = Engine.create({
 
 const spaceJunkComposite = Composite.create({label: 'Space Junk'});
 
-function createSpaceJunk(x, y) {
-  const radius = Math.random() * 20 + 5;
+function createSpaceJunk(x, y, radius = null) {
+  if (radius === null) {
+    radius = Math.random() * 20 + 5;
+  }
   const junk = Bodies.circle(x, y, radius, {
     friction: 0.03,
     frictionAir: 0,
@@ -32,7 +34,6 @@ function createSpaceJunk(x, y) {
   });
   return junk;
 }
-
 function initializeSpaceJunk() {
   for (let i = 0; i < junkAmount; i++) {
     const x = Math.random() * canvasWidth;
@@ -104,12 +105,14 @@ function updateSpaceJunk() {
 }
 
 function getJunkData() {
-  return Composite.allBodies(spaceJunkComposite).map(junk => ({
-    x: junk.position.x,
-    y: junk.position.y,
-    radius: junk.circleRadius,
-    angle: junk.angle,
-  }));
+  return Composite.allBodies(spaceJunkComposite).map(junk => {
+    return {
+      x: junk.position.x,
+      y: junk.position.y,
+      radius: junk.circleRadius,
+      angle: junk.angle,
+    };
+  });
 }
 
 initializeSpaceJunk();
@@ -117,5 +120,7 @@ World.add(engine.world, spaceJunkComposite);
 
 module.exports = {
   updateSpaceJunk,
-  getJunkData
+  getJunkData,
+  createSpaceJunk,
+  spaceJunkComposite
 };

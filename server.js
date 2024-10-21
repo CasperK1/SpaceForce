@@ -8,7 +8,9 @@ const io = new Server(server, {
   pingTimeout: 5000,
 });
 const port = process.env.PORT || 3000;
-const { updateSpaceJunk, getJunkData } = require('./matterJS');
+const { updateSpaceJunk, getJunkData, createSpaceJunk, spaceJunkComposite } = require('./matterJS');
+const Matter = require('matter-js');
+const { Body, Composite } = Matter;
 
 const backEndPlayers = {};
 const backEndProjectiles = {};
@@ -38,7 +40,7 @@ io.on("connection", (socket) => {
       weapon: {x: 0, y: 0, angle: 0},
       acceleration: {x: 0, y: 0},
       velocity: {x: 0, y: 0},
-      jetpack: { jetpackOn: false },
+      jetpack: {jetpackOn: false},
     };
     backEndPlayers[socket.id].canvas = {width, height};
     backEndPlayers[socket.id].radius = 10;
@@ -206,7 +208,46 @@ setInterval(() => {
     backEndPlayer.y += backEndPlayer.velocity.y
     backEndPlayer.y += 0.2;
   }
+  // After the existing projectile update loop
+const junkData = getJunkData();
+for (const id in backEndProjectiles) {
+  const projectile = backEndProjectiles[id];
 
+  for (let i = 0; i < junkData.length; i++) {
+    const junk = junkData[i];
+    const dx = projectile.x - junk.x;
+    const dy = projectile.y - junk.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < junk.radius + 5) { // 5 is projectile radius
+      // Collision detected
+      delete backEndProjectiles[id];
+
+      // Get the actual junk body
+      const junkBody = Composite.allBodies(spaceJunkComposite)[i];
+
+      if (junk.radius > 8) {
+        // Reduce size of hit junk
+        const newRadius = junk.radius * 0.5;
+        Body.scale(junkBody, 0.5, 0.5);
+
+        // Create a new smaller piece
+        const newJunkPosition = {
+          x: junk.x + (Math.random() - 0.5) * 20,
+          y: junk.y + (Math.random() - 0.5) * 20
+        };
+        const newJunk = createSpaceJunk(newJunkPosition.x, newJunkPosition.y, newRadius);
+        Composite.add(spaceJunkComposite, newJunk);
+
+      } else {
+        // Remove very small junk
+        Composite.remove(spaceJunkComposite, junkBody);
+      }
+
+      break;
+    }
+  }
+}
 
   io.emit('update-junk', getJunkData());
   io.emit("update-projectiles", backEndProjectiles);
